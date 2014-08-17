@@ -65,7 +65,7 @@ npm test
 
 ### Quantify
 
-**Public API***
+**Public API**
 
   * [new Quantify(name)](#new-quantifyname)
   * [quantify.counter(name)](#quantifycountername)
@@ -208,7 +208,7 @@ setInterval(function () { metrics[everyMinute](); }, 1000 * 60);
 
 ### Counter
 
-**Public API***
+**Public API**
 
   * [counter.update(n)](#counterupdaten)
   * [counter.reset()](#counterreset)
