@@ -1,6 +1,6 @@
 {
   "name": "quantify",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Yet another Node.js metrics module.",
   "scripts": {
     "test": "node scripts/test.js"
@@ -9,8 +9,7 @@
   "devDependencies": {
     "nodeunit": "0.9.x"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "repository": {
     "type": "git",
     "url": "git@github.com:tristanls/quantify.git"
