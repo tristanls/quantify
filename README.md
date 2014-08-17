@@ -204,12 +204,6 @@ setInterval(function () { metrics[everyMinute](); }, 1000 * 60);
   * `subscriptionName`: _String_ Name of subscription to unsubscribe.
   * Return: _Boolean_ `false` if subcription does not exist, `true` if successfully unsubscribed.
 
-
-## Sources
-
-  * [Ten Billion a Day, One-Hundred Milliseconds Per - Monitoring Real-Time Bidding At AdRoll](http://www.infoq.com/presentations/erlang-bidding-system)
-  * [measured](https://github.com/felixge/node-measured)
-
 ### Counter
 
 **Public API***
@@ -248,3 +242,8 @@ Updates the gauge with the provided value.
 ### gauge.value
 
 Returns the current gauge value.
+
+## Sources
+
+  * [Ten Billion a Day, One-Hundred Milliseconds Per - Monitoring Real-Time Bidding At AdRoll](http://www.infoq.com/presentations/erlang-bidding-system)
+  * [measured](https://github.com/felixge/node-measured)
