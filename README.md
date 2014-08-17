@@ -13,7 +13,9 @@ The _subscription_ concept is elaborated in the [quantify.subscribe(config)](#qu
 ## Usage
 
 ```javascript
-var metrics = require('quantify');
+var Quantify = require('quantify');
+
+var metrics = new Quantify();
 
 // create a counter
 var counter = metrics.counter("foo");
