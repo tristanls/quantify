@@ -301,7 +301,7 @@ Returns the count of total updates to the histogram.
 
 ### histogram.snapshot()
 
-Returns the snapshot of the histogram at the present time. Snapshot is necessary because the Histogram implementation uses weighted sampling and exponentially decaying reservoir in order to give percentile and other statistical estimates while maintaining a fixed sample size and being responsive to changes. These estimates are time-dependent on when the histogram is updated and the time the histogram snapshot is taken. For more on the topic see [Metrics Metrics Everywhere (Slides)](http://codahale.com/codeconf-2011-04-09-metrics-metrics-everywhere.pdf) and [Metrics Metrics Everywhere (Video)](https://www.youtube.com/watch?v=czes-oa0yik).
+Returns the snapshot of the histogram at the present time. Snapshot is necessary because the Histogram implementation uses weighted sampling and exponentially decaying reservoir in order to give percentile and other statistical estimates while maintaining a fixed sample size and being responsive to changes. These estimates are time-dependent on when the histogram is updated and the time the histogram snapshot is taken. For more on snapshots see the pull request discussed [here](https://github.com/dropwizard/metrics/pull/421). For more on the statistics involved see [Metrics Metrics Everywhere (Slides)](http://codahale.com/codeconf-2011-04-09-metrics-metrics-everywhere.pdf) and [Metrics Metrics Everywhere (Video)](https://www.youtube.com/watch?v=czes-oa0yik).
 
 The returned snapshot has the following available:
 
