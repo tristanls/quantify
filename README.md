@@ -303,6 +303,21 @@ Returns the count of total updates to the histogram.
 
 Returns the snapshot of the histogram at the present time. Snapshot is necessary because the Histogram implementation uses weighted sampling and exponentially decaying reservoir in order to give percentile and other statistical estimates while maintaining a fixed sample size and being responsive to changes. For more on the topic see [Metrics Metrics Everywhere (Slides)](http://codahale.com/codeconf-2011-04-09-metrics-metrics-everywhere.pdf) and [Metrics Metrics Everywhere (Video)](https://www.youtube.com/watch?v=czes-oa0yik).
 
+The returned snapshot has the following available:
+
+  * `snapshot.max()` - Returns the maximum value.
+  * `snapshot.mean()` - Returns the mean value.
+  * `snapshot.median()` - Returns the median value.
+  * `snapshot.min()` - Returns the minimum value.
+  * `snapshot.percentile75()` - Returns the 75th percentile value.
+  * `snapshot.percentile95()` - Returns the 95th percentile value.
+  * `snapshot.percentile98()` - Returns the 98th percentile value.
+  * `snapshot.percentile99()` - Returns the 99th percentile value.
+  * `snapshot.percentile999()` - Returns the 99.9th percentile value.
+  * `snapshot.quantile(q)` - Returns the `q`th percentile value (`q` should be between 0.0 and 1.0).
+  * `snapshot.size()` - Returns the number of values in the snapshot.
+  * `snapshot.standardDeviation()` - Return the standard deviation.
+
 ### histogram.update(n)
 
   * `n`: _Integer_ Value to update the histogram with.
