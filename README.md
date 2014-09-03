@@ -10,6 +10,8 @@ This one was created and inspired by the [measured](https://github.com/felixge/n
 
 The _subscription_ concept is elaborated in the [quantify.subscribe(config)](#quantifysubscribeconfig) section.
 
+The histogram implementation uses weighted sampling and exponentially decaying reservoir described [here](https://github.com/dropwizard/metrics/pull/421).
+
 ## Usage
 
 ```javascript
@@ -21,11 +23,16 @@ var metrics = new Quantify();
 var counter = metrics.counter("foo");
 // create a gauge
 var gauge = metrics.gauge("foo");
+// create a histogram
+var histogram = metrics.histogram("foo");
 
 counter.update(1); // increment
 counter.update(-1); // decrement
 
 gauge.update(17); // set
+
+histogram.update(1227); // update
+histogram.update(7122); // update
 
 var subscriptionName = metrics.subscribe({label: "mySubscription"});
 metrics.on(subscriptionName, function (data) {
@@ -33,6 +40,8 @@ metrics.on(subscriptionName, function (data) {
     console.log(data.label);
     console.log(data.counters.foo.value); // 0
     console.log(data.gauges.foo.value); // 17
+    var snapshot = data.histograms.foo.snapshot();
+    console.log(snapshot.percentile99()); // 7122
 });
 metrics.on(subscriptionName, function (data) {
     // HTTP logger
@@ -46,8 +55,10 @@ metrics.on(subscriptionName, function (data) {
         console.log(res.statusCode);
     });
     req.write("label:" + data.label + '\n');
-    req.write("foo:" + data.counters.foo.value + "|c\n");
-    req.write("foo:" + data.gauges.foo.value + "|g\n");
+    req.write("counter.foo:" + data.counters.foo.value + "|c\n");
+    req.write("gauge.foo:" + data.gauges.foo.value + "|g\n");
+    var snapshot = data.histograms.foo.snapshot();
+    req.write("histogram.foo.p99:" + snapshot.percentile99() + "|g\n");
     req.end();
 });
 
@@ -63,6 +74,11 @@ npm test
 
 ## Documentation
 
+  * [Quantify](#quantify)
+  * [Counter](#counter)
+  * [Gauge](#gauge)
+  * [Histogram](#histogram)
+
 ### Quantify
 
 **Public API**
@@ -70,6 +86,7 @@ npm test
   * [new Quantify(name)](#new-quantifyname)
   * [quantify.counter(name)](#quantifycountername)
   * [quantify.gauge(name)](#quantifygaugename)
+  * [quantify.histogram(name)](#quantifyhistogramname)
   * [quantify.subscribe(config)](#quantifysubscribeconfig)
   * [quantify.unsubscribe(subscriptionName)](#quantifyunsubscribesubscriptionname)
 
@@ -109,12 +126,29 @@ gauge.update(10); // set to 10
 gauge.update(122); // set to 122
 ```
 
+### quantify.histogram(name)
+
+  * `name`: _String_ Histogram name.
+  * Return: _Histogram_ Instance of a Histogram entry.
+
+Get or create a histogram with provided name.
+
+```javascript
+var Quantify = require('quantify');
+var metrics = new Quantify();
+var histogram = metrics.histogram("foo");
+histogram.update(17);
+histogram.update(10);
+histogram.update(122);
+```
+
 ### quantify.subscribe(config)
 
   * `config`: _Object
     * `filters`: _Object_ _(Default: undefined)_
       * `counters`: _RegExp_ _(Default: undefined)_ If specified, subscription will only return counters with names that match the RegExp.
       * `gauges`: _RegExp_ _(Default: undefined)_ If specified, subscription will only return gauges with names that match the RegExp.
+      * `histograms`: _RegExp_ _(Default: undefined)_ If specified, subscription will only return histograms with names that match the RegExp.
     * `label`: _String_ _(Default: undefined)_ Optional label for human readibility.
   * Return: _String_ Unique subscription name.
 
@@ -208,6 +242,8 @@ setInterval(function () { metrics[everyMinute](); }, 1000 * 60);
 
 ### Counter
 
+An incrementing and decrementing value.
+
 **Public API**
 
   * [counter.update(n)](#counterupdaten)
@@ -230,6 +266,8 @@ Returns the current counter value.
 
 ### Gauge
 
+The instantenous value of something.
+
 **Public API**
 
   * [gauge.update(n)](#gaugeupdaten)
@@ -245,7 +283,35 @@ Updates the gauge with the provided value.
 
 Returns the current gauge value.
 
+### Histogram
+
+The statistical distribution of values in a stream of data.
+
+This implementation uses weighted sampling and exponentially decaying reservoir described [here](https://github.com/dropwizard/metrics/pull/421).
+
+**Public API**
+
+  * [histogram.count()](#histogramcount)
+  * [histogram.snapshot()](#histogramsnapshot)
+  * [histogram.update(n)](#histogramupdaten)
+
+### histogram.count()
+
+Returns the count of total updates to the histogram.
+
+### histogram.snapshot()
+
+Returns the snapshot of the histogram at the present time. Snapshot is necessary because the Histogram implementation uses weighted sampling and exponentially decaying reservoir in order to give percentile and other statistical estimates while maintaining a fixed sample size and being responsive to changes. For more on the topic see [Metrics Metrics Everywhere (Slides)](http://codahale.com/codeconf-2011-04-09-metrics-metrics-everywhere.pdf) and [Metrics Metrics Everywhere (Video)](https://www.youtube.com/watch?v=czes-oa0yik).
+
+### histogram.update(n)
+
+  * `n`: _Integer_ Value to update the histogram with.
+
+Updates the histogram with the provided value.
+
 ## Sources
 
   * [Ten Billion a Day, One-Hundred Milliseconds Per - Monitoring Real-Time Bidding At AdRoll](http://www.infoq.com/presentations/erlang-bidding-system)
   * [measured](https://github.com/felixge/node-measured)
+  * [Metrics Metrics Everywhere (Slides)](http://codahale.com/codeconf-2011-04-09-metrics-metrics-everywhere.pdf)
+  * [Metrics Metrics Everywhere (Video)](https://www.youtube.com/watch?v=czes-oa0yik)

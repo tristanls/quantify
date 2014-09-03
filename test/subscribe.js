@@ -33,6 +33,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var Counter = require('../entries/counter.js');
 var Gauge = require('../entries/gauge.js');
+var Histogram = require('../entries/histogram.js');
 var Quantify = require('../index.js');
 
 var test = module.exports = {};
@@ -50,12 +51,14 @@ test['emits event with subscription name when subscription name method is invoke
 };
 
 test['emits event with all metrics when subscription name method is invoked'] = function (test) {
-    test.expect(6);
+    test.expect(9);
     var metrics = new Quantify();
     metrics.counter("foo");
     metrics.counter("bar");
     metrics.gauge("foo");
     metrics.gauge("bar");
+    metrics.histogram("foo");
+    metrics.histogram("bar");
 
     var subscriptionName = metrics.subscribe();
     metrics.on(subscriptionName, function (data) {
@@ -65,6 +68,9 @@ test['emits event with all metrics when subscription name method is invoked'] = 
         test.ok(data.gauges);
         test.ok(data.gauges.foo instanceof Gauge);
         test.ok(data.gauges.bar instanceof Gauge);
+        test.ok(data.histograms);
+        test.ok(data.histograms.foo instanceof Histogram);
+        test.ok(data.histograms.bar instanceof Histogram);
         test.done();
     });
     metrics[subscriptionName]();
@@ -90,7 +96,7 @@ test['emits event with counters matching counters filter'] = function (test) {
     metrics[subscriptionName]();
 };
 
-test['emits event with gauges matching counters filter'] = function (test) {
+test['emits event with gauges matching gauges filter'] = function (test) {
     test.expect(3);
     var metrics = new Quantify();
     metrics.gauge("foo");
@@ -110,16 +116,39 @@ test['emits event with gauges matching counters filter'] = function (test) {
     metrics[subscriptionName]();
 };
 
+test['emits event with histograms matching histograms filter'] = function (test) {
+    test.expect(3);
+    var metrics = new Quantify();
+    metrics.histogram("foo");
+    metrics.histogram("bar");
+
+    var subscriptionName = metrics.subscribe({
+        filters: {
+            histograms: /foo/
+        }
+    });
+    metrics.on(subscriptionName, function (data) {
+        test.ok(data.histograms);
+        test.equal(Object.keys(data.histograms).length, 1);
+        test.ok(data.histograms.foo instanceof Histogram);
+        test.done();
+    });
+    metrics[subscriptionName]();
+};
+
 test['multiple subscriptions work independently'] = function (test) {
-    test.expect(14);
+    test.expect(33);
     var metrics = new Quantify();
     metrics.counter("foo");
     metrics.counter("bar");
     metrics.gauge("foo");
     metrics.gauge("bar");
+    metrics.histogram("foo");
+    metrics.histogram("bar");
 
     var subscription1 = metrics.subscribe({filters: {counters: /foo/}});
     var subscription2 = metrics.subscribe({filters: {gauges: /bar/}});
+    var subscription3 = metrics.subscribe({filters: {histograms: /bar/}});
     metrics.on(subscription1, function (data) {
         test.ok(data.counters);
         test.equal(Object.keys(data.counters).length, 1);
@@ -128,6 +157,10 @@ test['multiple subscriptions work independently'] = function (test) {
         test.equal(Object.keys(data.gauges).length, 2);
         test.ok(data.gauges.foo instanceof Gauge);
         test.ok(data.gauges.bar instanceof Gauge);
+        test.ok(data.histograms);
+        test.equal(Object.keys(data.histograms).length, 2);
+        test.ok(data.histograms.foo instanceof Histogram);
+        test.ok(data.histograms.bar instanceof Histogram);
         metrics[subscription2]();
     });
     metrics.on(subscription2, function (data) {
@@ -138,6 +171,24 @@ test['multiple subscriptions work independently'] = function (test) {
         test.ok(data.gauges);
         test.equal(Object.keys(data.gauges).length, 1);
         test.ok(data.gauges.bar instanceof Gauge);
+        test.ok(data.histograms);
+        test.equal(Object.keys(data.histograms).length, 2);
+        test.ok(data.histograms.foo instanceof Histogram);
+        test.ok(data.histograms.bar instanceof Histogram);
+        metrics[subscription3]();
+    });
+    metrics.on(subscription3, function (data) {
+        test.ok(data.counters);
+        test.equal(Object.keys(data.counters).length, 2);
+        test.ok(data.counters.foo instanceof Counter);
+        test.ok(data.counters.bar instanceof Counter);
+        test.ok(data.gauges);
+        test.equal(Object.keys(data.gauges).length, 2);
+        test.ok(data.gauges.foo instanceof Gauge);
+        test.ok(data.gauges.bar instanceof Gauge);
+        test.ok(data.histograms);
+        test.equal(Object.keys(data.histograms).length, 1);
+        test.ok(data.histograms.bar instanceof Histogram);
         test.done();
     });
     metrics[subscription1]();

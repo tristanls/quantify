@@ -37,6 +37,7 @@ var util = require('util');
 
 var Counter = require('./entries/counter.js');
 var Gauge = require('./entries/gauge.js');
+var Histogram = require('./entries/histogram.js');
 
 /*
   * `name`: _String_ Quantify instance name.
@@ -48,6 +49,7 @@ var Quantify = module.exports = function Quantify(name) {
     self.name = name;
     self._counters = {};
     self._gauges = {};
+    self._histograms = {};
 };
 
 util.inherits(Quantify, events.EventEmitter);
@@ -93,6 +95,26 @@ Quantify.prototype.gauge = function gauge(name) {
 };
 
 /*
+  * `name`: _String_ Histogram name.
+  * Return: _Histogram_ Instance of a Histogram entry.
+*/
+Quantify.prototype.histogram = function histogram(name) {
+    var self = this;
+
+    if (!name) {
+        throw new Error("'name' must be specified");
+    }
+
+    if (self._histograms[name]) {
+        return self._histograms[name];
+    }
+
+    var entry = new Histogram();
+    self._histograms[name] = entry;
+    return entry;
+};
+
+/*
   * `config`: _Object
     * `filters`: _Object_ _(Default: undefined)_
       * `counters`: _RegExp_ _(Default: undefined)_ If specified, subscription
@@ -131,6 +153,7 @@ Quantify.prototype.subscribe = function subscribe(config) {
         if (!filters) {
             data.counters = self._counters;
             data.gauges = self._gauges;
+            data.histograms = self._histograms;
             process.nextTick(function () {
                 self.emit(subscriptionName, data);
             })
@@ -156,6 +179,17 @@ Quantify.prototype.subscribe = function subscribe(config) {
             Object.keys(self._gauges).forEach(function (gauge) {
                 if (gauge.match(filters.gauges)) {
                     data.gauges[gauge] = self._gauges[gauge];
+                }
+            });
+        }
+
+        if (!(filters.histograms instanceof RegExp)) {
+            data.histograms = self._histograms;
+        } else {
+            data.histograms = {};
+            Object.keys(self._histograms).forEach(function (histogram) {
+                if (histogram.match(filters.histograms)) {
+                    data.histograms[histogram] = self._histograms[histogram];
                 }
             });
         }
