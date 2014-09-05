@@ -38,6 +38,7 @@ var util = require('util');
 var Counter = require('./entries/counter.js');
 var Gauge = require('./entries/gauge.js');
 var Histogram = require('./entries/histogram.js');
+var Meter = require('./entries/meter.js');
 
 /*
   * `name`: _String_ Quantify instance name.
@@ -50,6 +51,7 @@ var Quantify = module.exports = function Quantify(name) {
     self._counters = {};
     self._gauges = {};
     self._histograms = {};
+    self._meters = {};
 };
 
 util.inherits(Quantify, events.EventEmitter);
@@ -115,6 +117,26 @@ Quantify.prototype.histogram = function histogram(name) {
 };
 
 /*
+  * `name`: _String_ Meter name.
+  * Return: _Meter_ Instance of a Meter entry.
+*/
+Quantify.prototype.meter = function meter(name) {
+    var self = this;
+
+    if (!name) {
+        throw new Error("'name' must be specified");
+    }
+
+    if (self._meters[name]) {
+        return self._meters[name];
+    }
+
+    var entry = new Meter();
+    self._meters[name] = entry;
+    return entry;
+};
+
+/*
   * `config`: _Object
     * `filters`: _Object_ _(Default: undefined)_
       * `counters`: _RegExp_ _(Default: undefined)_ If specified, subscription
@@ -143,53 +165,101 @@ Quantify.prototype.subscribe = function subscribe(config) {
     // delegated outside of this module and be driven by an external timing
     // mechanism.
     self[subscriptionName] = function () {
-        var data = {};
+        var data = {
+            counters: {},
+            gauges: {},
+            histograms: {},
+            meters: {}
+        };
 
         if (label) {
             data.label = label;
         }
 
-        // short-circuit filters if none specified
-        if (!filters) {
-            data.counters = self._counters;
-            data.gauges = self._gauges;
-            data.histograms = self._histograms;
-            process.nextTick(function () {
-                self.emit(subscriptionName, data);
-            })
-
-            return;
-        }
-
-        if (!(filters.counters instanceof RegExp)) {
-            data.counters = self._counters;
+        if (!filters || !(filters.counters instanceof RegExp)) {
+            Object.keys(self._counters).forEach(function (key) {
+                data.counters[key] = {value: self._counters[key].value};
+            });
         } else {
-            data.counters = {};
-            Object.keys(self._counters).forEach(function (counter) {
-                if (counter.match(filters.counters)) {
-                    data.counters[counter] = self._counters[counter];
+            Object.keys(self._counters).forEach(function (key) {
+                if (key.match(filters.counters)) {
+                    data.counters[key] = {value: self._counters[key].value};
                 }
             });
         }
 
-        if (!(filters.gauges instanceof RegExp)) {
-            data.gauges = self._gauges;
+        if (!filters || !(filters.gauges instanceof RegExp)) {
+            Object.keys(self._gauges).forEach(function (key) {
+                data.gauges[key] = {value: self._gauges[key].value};
+            });
         } else {
-            data.gauges = {};
-            Object.keys(self._gauges).forEach(function (gauge) {
-                if (gauge.match(filters.gauges)) {
-                    data.gauges[gauge] = self._gauges[gauge];
+            Object.keys(self._gauges).forEach(function (key) {
+                if (key.match(filters.gauges)) {
+                    data.gauges[key] = {value: self._gauges[key].value};
                 }
             });
         }
 
-        if (!(filters.histograms instanceof RegExp)) {
-            data.histograms = self._histograms;
+        if (!filters || !(filters.histograms instanceof RegExp)) {
+            Object.keys(self._histograms).forEach(function (key) {
+                var snapshot = self._histograms[key].snapshot();
+                data.histograms[key] = {
+                    max: snapshot.max(),
+                    mean: snapshot.mean(),
+                    median: snapshot.median(),
+                    min: snapshot.min(),
+                    percentile75: snapshot.percentile75(),
+                    percentile95: snapshot.percentile95(),
+                    percentile98: snapshot.percentile98(),
+                    percentile99: snapshot.percentile99(),
+                    percentile999: snapshot.percentile999(),
+                    size: snapshot.size(),
+                    standardDeviation: snapshot.standardDeviation()
+                };
+            });
         } else {
-            data.histograms = {};
-            Object.keys(self._histograms).forEach(function (histogram) {
-                if (histogram.match(filters.histograms)) {
-                    data.histograms[histogram] = self._histograms[histogram];
+            Object.keys(self._histograms).forEach(function (key) {
+                if (key.match(filters.histograms)) {
+                    var snapshot = self._histograms[key].snapshot();
+                    data.histograms[key] = {
+                        max: snapshot.max(),
+                        mean: snapshot.mean(),
+                        median: snapshot.median(),
+                        min: snapshot.min(),
+                        percentile75: snapshot.percentile75(),
+                        percentile95: snapshot.percentile95(),
+                        percentile98: snapshot.percentile98(),
+                        percentile99: snapshot.percentile99(),
+                        percentile999: snapshot.percentile999(),
+                        size: snapshot.size(),
+                        standardDeviation: snapshot.standardDeviation()
+                    };
+                }
+            });
+        }
+
+        if (!filters || !(filters.meters instanceof RegExp)) {
+            Object.keys(self._meters).forEach(function (key) {
+                var meter = self._meters[key];
+                data.meters[key] = {
+                    count: meter.count,
+                    meanRate: meter.meanRate(),
+                    oneMinuteRate: meter.oneMinuteRate(),
+                    fiveMinuteRate: meter.fiveMinuteRate(),
+                    fifteenMinuteRate: meter.fifteenMinuteRate()
+                };
+            });
+        } else {
+            Object.keys(self._meters).forEach(function (key) {
+                if (key.match(filters.meters)) {
+                    var meter = self._meters[key];
+                    data.meters[key] = {
+                        count: meter.count,
+                        meanRate: meter.meanRate(),
+                        oneMinuteRate: meter.oneMinuteRate(),
+                        fiveMinuteRate: meter.fiveMinuteRate(),
+                        fifteenMinuteRate: meter.fifteenMinuteRate()
+                    };
                 }
             });
         }

@@ -34,6 +34,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 var Counter = require('../entries/counter.js');
 var Gauge = require('../entries/gauge.js');
 var Histogram = require('../entries/histogram.js');
+var Meter = require('../entries/meter.js');
 var Quantify = require('../index.js');
 
 var test = module.exports = {};
@@ -51,7 +52,7 @@ test['emits event with subscription name when subscription name method is invoke
 };
 
 test['emits event with all metrics when subscription name method is invoked'] = function (test) {
-    test.expect(9);
+    test.expect(12);
     var metrics = new Quantify();
     metrics.counter("foo");
     metrics.counter("bar");
@@ -59,18 +60,23 @@ test['emits event with all metrics when subscription name method is invoked'] = 
     metrics.gauge("bar");
     metrics.histogram("foo");
     metrics.histogram("bar");
+    metrics.meter("foo");
+    metrics.meter("bar");
 
     var subscriptionName = metrics.subscribe();
     metrics.on(subscriptionName, function (data) {
         test.ok(data.counters);
-        test.ok(data.counters.foo instanceof Counter);
-        test.ok(data.counters.bar instanceof Counter);
+        test.equal(data.counters.foo.value, 0);
+        test.equal(data.counters.bar.value, 0);
         test.ok(data.gauges);
-        test.ok(data.gauges.foo instanceof Gauge);
-        test.ok(data.gauges.bar instanceof Gauge);
+        test.equal(data.gauges.foo.value, 0);
+        test.equal(data.gauges.bar.value, 0);
         test.ok(data.histograms);
-        test.ok(data.histograms.foo instanceof Histogram);
-        test.ok(data.histograms.bar instanceof Histogram);
+        test.equal(data.histograms.foo.size, 0);
+        test.equal(data.histograms.bar.size, 0);
+        test.ok(data.meters);
+        test.equal(data.meters.foo.count, 0);
+        test.equal(data.meters.bar.count, 0);
         test.done();
     });
     metrics[subscriptionName]();
@@ -90,7 +96,7 @@ test['emits event with counters matching counters filter'] = function (test) {
     metrics.on(subscriptionName, function (data) {
         test.ok(data.counters);
         test.equal(Object.keys(data.counters).length, 1);
-        test.ok(data.counters.foo instanceof Counter);
+        test.equal(data.counters.foo.value, 0);
         test.done();
     });
     metrics[subscriptionName]();
@@ -110,14 +116,14 @@ test['emits event with gauges matching gauges filter'] = function (test) {
     metrics.on(subscriptionName, function (data) {
         test.ok(data.gauges);
         test.equal(Object.keys(data.gauges).length, 1);
-        test.ok(data.gauges.foo instanceof Gauge);
+        test.equal(data.gauges.foo.value, 0);
         test.done();
     });
     metrics[subscriptionName]();
 };
 
 test['emits event with histograms matching histograms filter'] = function (test) {
-    test.expect(3);
+    test.expect(13);
     var metrics = new Quantify();
     metrics.histogram("foo");
     metrics.histogram("bar");
@@ -130,14 +136,48 @@ test['emits event with histograms matching histograms filter'] = function (test)
     metrics.on(subscriptionName, function (data) {
         test.ok(data.histograms);
         test.equal(Object.keys(data.histograms).length, 1);
-        test.ok(data.histograms.foo instanceof Histogram);
+        test.equal(data.histograms.foo.max, 0);
+        test.equal(data.histograms.foo.mean, 0);
+        test.equal(data.histograms.foo.median, 0);
+        test.equal(data.histograms.foo.min, 0);
+        test.equal(data.histograms.foo.percentile75, 0);
+        test.equal(data.histograms.foo.percentile95, 0);
+        test.equal(data.histograms.foo.percentile98, 0);
+        test.equal(data.histograms.foo.percentile99, 0);
+        test.equal(data.histograms.foo.percentile999, 0);
+        test.equal(data.histograms.foo.size, 0);
+        test.equal(data.histograms.foo.standardDeviation, 0);
+        test.done();
+    });
+    metrics[subscriptionName]();
+};
+
+test['emits event with meters matching meters filter'] = function (test) {
+    test.expect(7);
+    var metrics = new Quantify();
+    metrics.meter("foo");
+    metrics.meter("bar");
+
+    var subscriptionName = metrics.subscribe({
+        filters: {
+            meters: /foo/
+        }
+    });
+    metrics.on(subscriptionName, function (data) {
+        test.ok(data.meters);
+        test.equal(Object.keys(data.meters).length, 1);
+        test.equal(data.meters.foo.count, 0);
+        test.equal(data.meters.foo.meanRate, 0);
+        test.equal(data.meters.foo.oneMinuteRate, 0);
+        test.equal(data.meters.foo.fiveMinuteRate, 0);
+        test.equal(data.meters.foo.fifteenMinuteRate, 0);
         test.done();
     });
     metrics[subscriptionName]();
 };
 
 test['multiple subscriptions work independently'] = function (test) {
-    test.expect(33);
+    test.expect(56);
     var metrics = new Quantify();
     metrics.counter("foo");
     metrics.counter("bar");
@@ -145,50 +185,79 @@ test['multiple subscriptions work independently'] = function (test) {
     metrics.gauge("bar");
     metrics.histogram("foo");
     metrics.histogram("bar");
+    metrics.meter("foo");
+    metrics.meter("bar");
 
     var subscription1 = metrics.subscribe({filters: {counters: /foo/}});
     var subscription2 = metrics.subscribe({filters: {gauges: /bar/}});
     var subscription3 = metrics.subscribe({filters: {histograms: /bar/}});
+    var subscription4 = metrics.subscribe({filters: {meters: /bar/}});
     metrics.on(subscription1, function (data) {
         test.ok(data.counters);
         test.equal(Object.keys(data.counters).length, 1);
-        test.ok(data.counters.foo instanceof Counter);
+        test.equal(data.counters.foo.value, 0);
         test.ok(data.gauges);
         test.equal(Object.keys(data.gauges).length, 2);
-        test.ok(data.gauges.foo instanceof Gauge);
-        test.ok(data.gauges.bar instanceof Gauge);
+        test.equal(data.gauges.foo.value, 0);
+        test.equal(data.gauges.bar.value, 0);
         test.ok(data.histograms);
         test.equal(Object.keys(data.histograms).length, 2);
-        test.ok(data.histograms.foo instanceof Histogram);
-        test.ok(data.histograms.bar instanceof Histogram);
+        test.equal(data.histograms.foo.size, 0);
+        test.equal(data.histograms.bar.size, 0);
+        test.equal(Object.keys(data.meters).length, 2);
+        test.equal(data.meters.foo.count, 0);
+        test.equal(data.meters.bar.count, 0);
         metrics[subscription2]();
     });
     metrics.on(subscription2, function (data) {
         test.ok(data.counters);
         test.equal(Object.keys(data.counters).length, 2);
-        test.ok(data.counters.foo instanceof Counter);
-        test.ok(data.counters.bar instanceof Counter);
+        test.equal(data.counters.foo.value, 0);
+        test.equal(data.counters.bar.value, 0);
         test.ok(data.gauges);
         test.equal(Object.keys(data.gauges).length, 1);
-        test.ok(data.gauges.bar instanceof Gauge);
+        test.equal(data.gauges.bar.value, 0);
         test.ok(data.histograms);
         test.equal(Object.keys(data.histograms).length, 2);
-        test.ok(data.histograms.foo instanceof Histogram);
-        test.ok(data.histograms.bar instanceof Histogram);
+        test.equal(data.histograms.foo.size, 0);
+        test.equal(data.histograms.bar.size, 0);
+        test.equal(Object.keys(data.meters).length, 2);
+        test.equal(data.meters.foo.count, 0);
+        test.equal(data.meters.bar.count, 0);
         metrics[subscription3]();
     });
     metrics.on(subscription3, function (data) {
         test.ok(data.counters);
         test.equal(Object.keys(data.counters).length, 2);
-        test.ok(data.counters.foo instanceof Counter);
-        test.ok(data.counters.bar instanceof Counter);
+        test.equal(data.counters.foo.value, 0);
+        test.equal(data.counters.bar.value, 0);
         test.ok(data.gauges);
         test.equal(Object.keys(data.gauges).length, 2);
-        test.ok(data.gauges.foo instanceof Gauge);
-        test.ok(data.gauges.bar instanceof Gauge);
+        test.equal(data.gauges.foo.value, 0);
+        test.equal(data.gauges.bar.value, 0);
         test.ok(data.histograms);
         test.equal(Object.keys(data.histograms).length, 1);
-        test.ok(data.histograms.bar instanceof Histogram);
+        test.equal(data.histograms.bar.size, 0);
+        test.equal(Object.keys(data.meters).length, 2);
+        test.equal(data.meters.foo.count, 0);
+        test.equal(data.meters.bar.count, 0);
+        metrics[subscription4]();
+    });
+    metrics.on(subscription4, function (data) {
+        test.ok(data.counters);
+        test.equal(Object.keys(data.counters).length, 2);
+        test.equal(data.counters.foo.value, 0);
+        test.equal(data.counters.bar.value, 0);
+        test.ok(data.gauges);
+        test.equal(Object.keys(data.gauges).length, 2);
+        test.equal(data.gauges.foo.value, 0);
+        test.equal(data.gauges.bar.value, 0);
+        test.ok(data.histograms);
+        test.equal(Object.keys(data.histograms).length, 2);
+        test.equal(data.histograms.foo.size, 0);
+        test.equal(data.histograms.bar.size, 0);
+        test.equal(Object.keys(data.meters).length, 1);
+        test.equal(data.meters.bar.count, 0);
         test.done();
     });
     metrics[subscription1]();

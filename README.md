@@ -25,6 +25,8 @@ var counter = metrics.counter("foo");
 var gauge = metrics.gauge("foo");
 // create a histogram
 var histogram = metrics.histogram("foo");
+// create a meter
+var meter = metrics.meter("foo");
 
 counter.update(1); // increment
 counter.update(-1); // decrement
@@ -34,14 +36,31 @@ gauge.update(17); // set
 histogram.update(1227); // update
 histogram.update(7122); // update
 
+meter.update(); // mark
+meter.update(10); // 10 "simultaneous" marks
+
 var subscriptionName = metrics.subscribe({label: "mySubscription"});
 metrics.on(subscriptionName, function (data) {
     // console logger
     console.log(data.label);
     console.log(data.counters.foo.value); // 0
     console.log(data.gauges.foo.value); // 17
-    var snapshot = data.histograms.foo.snapshot();
-    console.log(snapshot.percentile99()); // 7122
+    console.log(data.histograms.foo.max); // maximum
+    console.log(data.histograms.foo.mean); // mean
+    console.log(data.histograms.foo.median); // median
+    console.log(data.histograms.foo.min); // minimum
+    console.log(data.histograms.foo.percentile75); // 75th percentile
+    console.log(data.histograms.foo.percentile95); // 95th percentile
+    console.log(data.histograms.foo.percentile98); // 98th percentile
+    console.log(data.histograms.foo.percentile99); // 99th percentile
+    console.log(data.histograms.foo.percentile999); // 99.9th percentile
+    console.log(data.histograms.foo.size); // size
+    console.log(data.histograms.foo.standardDeviation); // standard deviation
+    console.log(data.meters.foo.count); // count
+    console.log(data.meters.foo.meanRate); // mean rate since creation
+    console.log(data.meters.foo.oneMinuteRate); // one minute rate
+    console.log(data.meters.foo.fiveMinuteRate); // five minute rate
+    console.log(data.meters.foo.fifteenMinuteRate); // fifteen minute rate
 });
 metrics.on(subscriptionName, function (data) {
     // HTTP logger
@@ -57,8 +76,22 @@ metrics.on(subscriptionName, function (data) {
     req.write("label:" + data.label + '\n');
     req.write("counter.foo:" + data.counters.foo.value + "|c\n");
     req.write("gauge.foo:" + data.gauges.foo.value + "|g\n");
-    var snapshot = data.histograms.foo.snapshot();
-    req.write("histogram.foo.p99:" + snapshot.percentile99() + "|g\n");
+    req.write("histogram.foo.max:" + data.histograms.foo.max + "|g\n");
+    req.write("histogram.foo.mean:" + data.histograms.foo.mean + "|g\n");
+    req.write("histogram.foo.median:" + data.histograms.foo.median + "|g\n");
+    req.write("histogram.foo.min:" + data.histograms.foo.min + "|g\n");
+    req.write("histogram.foo.p75:" + data.histograms.foo.percentile75 + "|g\n");
+    req.write("histogram.foo.p95:" + data.histograms.foo.percentile95 + "|g\n");
+    req.write("histogram.foo.p98:" + data.histograms.foo.percentile98 + "|g\n");
+    req.write("histogram.foo.p99:" + data.histograms.foo.percentile99 + "|g\n");
+    req.write("histogram.foo.p999:" + data.histograms.foo.percentile999 + "|g\n");
+    req.write("histogram.foo.size:" + data.histograms.foo.size + "|g\n");
+    req.write("histogram.foo.stdDev:" + data.histograms.foo.standardDeviation + "|g\n");
+    req.write("meter.foo.count:" + data.meters.foo.count + "|g\n");
+    req.write("meter.foo.meanRate:" + data.meters.foo.meanRate + "|g\n");
+    req.write("meter.foo.oneMinuteRate:" + data.meters.foo.oneMinuteRate + "|g\n");
+    req.write("meter.foo.fiveMinuteRate:" + data.meters.foo.fiveMinuteRate + "|g\n");
+    req.write("meter.foo.fifteenMinuteRate:" + data.meters.foo.fifteenMinuteRate + "|g\n");
     req.end();
 });
 
@@ -78,6 +111,7 @@ npm test
   * [Counter](#counter)
   * [Gauge](#gauge)
   * [Histogram](#histogram)
+  * [Meter](#meter)
 
 ### Quantify
 
@@ -87,8 +121,10 @@ npm test
   * [quantify.counter(name)](#quantifycountername)
   * [quantify.gauge(name)](#quantifygaugename)
   * [quantify.histogram(name)](#quantifyhistogramname)
+  * [quantify.meter(name)](#quantifymetername)
   * [quantify.subscribe(config)](#quantifysubscribeconfig)
   * [quantify.unsubscribe(subscriptionName)](#quantifyunsubscribesubscriptionname)
+  * [Event '<subscriptionName>'](#event-subscriptionname)
 
 ### new Quantify(name)
 
@@ -142,6 +178,22 @@ histogram.update(10);
 histogram.update(122);
 ```
 
+### quantify.meter(name)
+
+  * `name`: _String_ Meter name.
+  * Return: _Meter_ Instance of a Meter entry.
+
+Get or create a meter with provided name.
+
+```javascript
+var Quantify = require('quantify');
+var metrics = new Quantify();
+var meter = metrics.meter("foo");
+meter.update();
+meter.update();
+meter.update(2);
+```
+
 ### quantify.subscribe(config)
 
   * `config`: _Object
@@ -149,6 +201,7 @@ histogram.update(122);
       * `counters`: _RegExp_ _(Default: undefined)_ If specified, subscription will only return counters with names that match the RegExp.
       * `gauges`: _RegExp_ _(Default: undefined)_ If specified, subscription will only return gauges with names that match the RegExp.
       * `histograms`: _RegExp_ _(Default: undefined)_ If specified, subscription will only return histograms with names that match the RegExp.
+      * `meters`: _RegExp_ _(Default: undefined)_ If specified, subscription will only return meters with names that match the RegExp.
     * `label`: _String_ _(Default: undefined)_ Optional label for human readibility.
   * Return: _String_ Unique subscription name.
 
@@ -240,6 +293,17 @@ setInterval(function () { metrics[everyMinute](); }, 1000 * 60);
   * `subscriptionName`: _String_ Name of subscription to unsubscribe.
   * Return: _Boolean_ `false` if subcription does not exist, `true` if successfully unsubscribed.
 
+### Event `<subscriptionName>`
+
+  * `function (data) {}`
+    * `data`: _Object_ Object containing counters, gauges, histograms, and meters corresponding to the given `<subscriptionName>`.
+      * `counters`: _Object_ Object containing counters by name. Each counter having the property: `value`.
+      * `gauges`: _Object_ Object containing gauges by name. Each gauge having the property: `value`.
+      * `histograms`: _Object_ Object containing histograms by name. Each histogram having the properties: `max`, `mean`, `median`, `min`, `percentile75`, `percentile95`, `percentile98`, `percentile99`, `percentile999`, `size`, `standardDeviation`.
+      * `meters`: _Object_ Object containing meters by name. Each meter having the properties: `count`, `fifteenMinuteRate`, `fiveMinuteRate`, `meanRate`, `oneMinuteRate`.
+
+Each subscription emits an event uniquely named with a given `subscriptionName` and containing the appropriate `data` according to previously set subscription filters.
+
 ### Counter
 
 An incrementing and decrementing value.
@@ -323,6 +387,43 @@ The returned snapshot has the following available:
   * `n`: _Integer_ Value to update the histogram with.
 
 Updates the histogram with the provided value.
+
+### Meter
+
+**Public API**
+
+  * [meter.count](#metercount)
+  * [meter.fifteenMinuteRate()](#meterfifteenminuterate)
+  * [meter.fiveMinuteRate()](#meterfiveminuterate)
+  * [meter.meanRate()](#metermeanrate)
+  * [meter.oneMinuteRate()](#meteroneminuterate)
+  * [meter.update(n)](#meterupdaten)
+
+### meter.count
+
+Returns the current count of meter updates.
+
+### meter.fifteenMinuteRate()
+
+Returns the fifteen minute rate in updates per second.
+
+### meter.fiveMinuteRate()
+
+Returns the five minute rate in updates per second.
+
+### meter.meanRate()
+
+Returns the mean rate since meter creation in updates per second.
+
+### meter.oneMinuteRate()
+
+Returns the one minute rate in updates per second.
+
+### meter.update(n)
+
+  * `n`: _Integer_ Value to update the meter with.
+
+Updates the meter `n` times.
 
 ## Sources
 
