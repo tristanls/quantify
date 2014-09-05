@@ -1,6 +1,6 @@
 {
   "name": "quantify",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Yet another Node.js metrics module.",
   "scripts": {
     "test": "node scripts/test.js"
