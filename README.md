@@ -27,6 +27,8 @@ var gauge = metrics.gauge("foo");
 var histogram = metrics.histogram("foo");
 // create a meter
 var meter = metrics.meter("foo");
+// create a timer
+var timer = metrics.timer("foo");
 
 counter.update(1); // increment
 counter.update(-1); // decrement
@@ -38,6 +40,10 @@ histogram.update(7122); // update
 
 meter.update(); // mark
 meter.update(10); // 10 "simultaneous" marks
+
+var stopwatch = timer.start(); // start a timer
+stopwatch.stop(); // stop a timer
+timer.update(178); // explicitly update the timer with given value
 
 var subscriptionName = metrics.subscribe({label: "mySubscription"});
 metrics.on(subscriptionName, function (data) {
@@ -61,6 +67,22 @@ metrics.on(subscriptionName, function (data) {
     console.log(data.meters.foo.oneMinuteRate); // one minute rate
     console.log(data.meters.foo.fiveMinuteRate); // five minute rate
     console.log(data.meters.foo.fifteenMinuteRate); // fifteen minute rate
+    console.log(data.timers.foo.count); // count
+    console.log(data.timers.foo.meanRate); // mean rate since creation
+    console.log(data.timers.foo.oneMinuteRate); // one minute rate
+    console.log(data.timers.foo.fiveMinuteRate); // five minute rate
+    console.log(data.timers.foo.fifteenMinuteRate); // fifteen minute rate
+    console.log(data.timers.foo.max); // maximum
+    console.log(data.timers.foo.mean); // mean
+    console.log(data.timers.foo.median); // median
+    console.log(data.timers.foo.min); // minimum
+    console.log(data.timers.foo.percentile75); // 75th percentile
+    console.log(data.timers.foo.percentile95); // 95th percentile
+    console.log(data.timers.foo.percentile98); // 98th percentile
+    console.log(data.timers.foo.percentile99); // 99th percentile
+    console.log(data.timers.foo.percentile999); // 99.9th percentile
+    console.log(data.timers.foo.size); // size
+    console.log(data.timers.foo.standardDeviation); // standard deviation
 });
 metrics.on(subscriptionName, function (data) {
     // HTTP logger
@@ -92,6 +114,22 @@ metrics.on(subscriptionName, function (data) {
     req.write("meter.foo.oneMinuteRate:" + data.meters.foo.oneMinuteRate + "|g\n");
     req.write("meter.foo.fiveMinuteRate:" + data.meters.foo.fiveMinuteRate + "|g\n");
     req.write("meter.foo.fifteenMinuteRate:" + data.meters.foo.fifteenMinuteRate + "|g\n");
+    req.write("timer.foo.count:" + data.timers.foo.count + "|g\n");
+    req.write("timer.foo.meanRate:" + data.timers.foo.meanRate + "|g\n");
+    req.write("timer.foo.oneMinuteRate:" + data.timers.foo.oneMinuteRate + "|g\n");
+    req.write("timer.foo.fiveMinuteRate:" + data.timers.foo.fiveMinuteRate + "|g\n");
+    req.write("timer.foo.fifteenMinuteRate:" + data.timers.foo.fifteenMinuteRate + "|g\n");
+    req.write("timer.foo.max:" + data.timers.foo.max + "|g\n");
+    req.write("timer.foo.mean:" + data.timers.foo.mean + "|g\n");
+    req.write("timer.foo.median:" + data.timers.foo.median + "|g\n");
+    req.write("timer.foo.min:" + data.timers.foo.min + "|g\n");
+    req.write("timer.foo.p75:" + data.timers.foo.percentile75 + "|g\n");
+    req.write("timer.foo.p95:" + data.timers.foo.percentile95 + "|g\n");
+    req.write("timer.foo.p98:" + data.timers.foo.percentile98 + "|g\n");
+    req.write("timer.foo.p99:" + data.timers.foo.percentile99 + "|g\n");
+    req.write("timer.foo.p999:" + data.timers.foo.percentile999 + "|g\n");
+    req.write("timer.foo.size:" + data.timers.foo.size + "|g\n");
+    req.write("timer.foo.stdDev:" + data.timers.foo.standardDeviation + "|g\n");
     req.end();
 });
 
@@ -112,6 +150,7 @@ npm test
   * [Gauge](#gauge)
   * [Histogram](#histogram)
   * [Meter](#meter)
+  * [Timer](#timer)
 
 ### Quantify
 
@@ -123,6 +162,7 @@ npm test
   * [quantify.histogram(name)](#quantifyhistogramname)
   * [quantify.meter(name)](#quantifymetername)
   * [quantify.subscribe(config)](#quantifysubscribeconfig)
+  * [quantify.timer(name)](#quantifytimername)
   * [quantify.unsubscribe(subscriptionName)](#quantifyunsubscribesubscriptionname)
   * [Event '\<subscriptionName\>'](#event-subscriptionname)
 
@@ -202,6 +242,7 @@ meter.update(2);
       * `gauges`: _RegExp_ _(Default: undefined)_ If specified, subscription will only return gauges with names that match the RegExp.
       * `histograms`: _RegExp_ _(Default: undefined)_ If specified, subscription will only return histograms with names that match the RegExp.
       * `meters`: _RegExp_ _(Default: undefined)_ If specified, subscription will only return meters with names that match the RegExp.
+      * `timers`: _RegExp_ _(Default: undefined)_ If specified, subscription will only return timers with names that match the RegExp.
     * `label`: _String_ _(Default: undefined)_ Optional label for human readibility.
   * Return: _String_ Unique subscription name.
 
@@ -286,6 +327,24 @@ metrics.on(everyMinute, function (data) {
 });
 
 setInterval(function () { metrics[everyMinute](); }, 1000 * 60);
+```
+
+### quantify.timer(name)
+
+  * `name`: _String_ Timer name.
+  * Return: _Timer_ Instance of a Timer entry.
+
+Get or create a timer with provided name.
+
+```javascript
+var Quantify = require('quantify');
+var metrics = new Quantify();
+var timer = metrics.timer("foo");
+timer.update(177); // explicitly record a time interval
+var stopwatch = timer.start(); // start measuring a time interval
+setTimeout(function () {
+    stopwatch.stop(); // stop measuring a time interval and record it
+}, 100);
 ```
 
 ### quantify.unsubscribe(subscriptionName)
@@ -390,6 +449,8 @@ Updates the histogram with the provided value.
 
 ### Meter
 
+Measures the rate at which events occur.
+
 **Public API**
 
   * [meter.count](#metercount)
@@ -424,6 +485,50 @@ Returns the one minute rate in updates per second.
   * `n`: _Integer_ Value to update the meter with.
 
 Updates the meter `n` times.
+
+### Timer
+
+A combination of a histogram of the duration of an event and a meter of the rate of its occurence.
+
+**Public API**
+
+  * [timer.count()](#timercount)
+  * [timer.fifteenMinuteRate()](#timerfifteenminuterate)
+  * [timer.fiveMinuteRate()](#timerfiveminuterate)
+  * [timer.meanRate()](#timermeanrate)
+  * [timer.oneMinuteRate()](#timeroneminuterate)
+  * [timer.snapshot()](#timersnapshot)
+  * [timer.update(n)](#timerupdaten)
+
+### timer.count()
+
+Returns the current count of timer updates.
+
+### timer.fifteenMinuteRate()
+
+Returns the fifteen minute rate in updates per second.
+
+### timer.fiveMinuteRate()
+
+Returns the five minute rate in updates per second.
+
+### timer.meanRate()
+
+Returns the mean rate since timer creation in updates per second.
+
+### timer.oneMinuteRate()
+
+Returns the one minute rate in updates per second.
+
+### timer.snapshot()
+
+Returns the snapshot of the histogram corresponding to the timer at the present time. See [histogram.snapshot()](#histogramsnapshot).
+
+### timer.update(n)
+
+  * `n`: _Integer_ Value to update the timer with.
+
+Updates the timer with the provided value.
 
 ## Sources
 

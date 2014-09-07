@@ -39,6 +39,7 @@ var Counter = require('./entries/counter.js');
 var Gauge = require('./entries/gauge.js');
 var Histogram = require('./entries/histogram.js');
 var Meter = require('./entries/meter.js');
+var Timer = require('./entries/timer.js');
 
 /*
   * `name`: _String_ Quantify instance name.
@@ -52,6 +53,7 @@ var Quantify = module.exports = function Quantify(name) {
     self._gauges = {};
     self._histograms = {};
     self._meters = {};
+    self._timers = {};
 };
 
 util.inherits(Quantify, events.EventEmitter);
@@ -137,12 +139,38 @@ Quantify.prototype.meter = function meter(name) {
 };
 
 /*
+  * `name`: _String_ Timer name.
+  * Return: _Timer_ Instance of a Timer entry.
+*/
+Quantify.prototype.timer = function timer(name) {
+    var self = this;
+
+    if (!name) {
+        throw new Error("'name' must be specified");
+    }
+
+    if (self._timers[name]) {
+        return self._timers[name];
+    }
+
+    var entry = new Timer();
+    self._timers[name] = entry;
+    return entry;
+};
+
+/*
   * `config`: _Object
     * `filters`: _Object_ _(Default: undefined)_
       * `counters`: _RegExp_ _(Default: undefined)_ If specified, subscription
           will only return counters with names that match the RegExp.
       * `gauges`: _RegExp_ _(Default: undefined)_ If specified, subscription
           will only return gauges with names that match the RegExp.
+      * `histograms`: _RegExp_ _(Default: undefined)_ If specified, subscription
+          will only return histograms with names that match the RegExp.
+      * `meters`: _RegExp_ _(Default: undefined)_ If specified, subscription
+          will only return meters with names that match the RegExp.
+      * `timers`: _RegExp_ _(Default: undefined)_ If specified, subscription
+          will only return timers with names that match the RegExp.
     * `label`: _String_ _(Default: undefined)_ Optional label for human readibility.
   * Return: _String_ Unique subscription name.
 */
@@ -169,7 +197,8 @@ Quantify.prototype.subscribe = function subscribe(config) {
             counters: {},
             gauges: {},
             histograms: {},
-            meters: {}
+            meters: {},
+            timers: {}
         };
 
         if (label) {
@@ -259,6 +288,56 @@ Quantify.prototype.subscribe = function subscribe(config) {
                         oneMinuteRate: meter.oneMinuteRate(),
                         fiveMinuteRate: meter.fiveMinuteRate(),
                         fifteenMinuteRate: meter.fifteenMinuteRate()
+                    };
+                }
+            });
+        }
+
+        if (!filters || !(filters.timers instanceof RegExp)) {
+            Object.keys(self._timers).forEach(function (key) {
+                var timer = self._timers[key];
+                var snapshot = timer.snapshot();
+                data.timers[key] = {
+                    count: timer.count(),
+                    meanRate: timer.meanRate(),
+                    oneMinuteRate: timer.oneMinuteRate(),
+                    fiveMinuteRate: timer.fiveMinuteRate(),
+                    fifteenMinuteRate: timer.fifteenMinuteRate(),
+                    max: snapshot.max(),
+                    mean: snapshot.mean(),
+                    median: snapshot.median(),
+                    min: snapshot.min(),
+                    percentile75: snapshot.percentile75(),
+                    percentile95: snapshot.percentile95(),
+                    percentile98: snapshot.percentile98(),
+                    percentile99: snapshot.percentile99(),
+                    percentile999: snapshot.percentile999(),
+                    size: snapshot.size(),
+                    standardDeviation: snapshot.standardDeviation()
+                };
+            });
+        } else {
+            Object.keys(self._timers).forEach(function (key) {
+                if (key.match(filters.timers)) {
+                    var timer = self._timers[key];
+                    var snapshot = timer.snapshot();
+                    data.timers[key] = {
+                        count: timer.count(),
+                        meanRate: timer.meanRate(),
+                        oneMinuteRate: timer.oneMinuteRate(),
+                        fiveMinuteRate: timer.fiveMinuteRate(),
+                        fifteenMinuteRate: timer.fifteenMinuteRate(),
+                        max: snapshot.max(),
+                        mean: snapshot.mean(),
+                        median: snapshot.median(),
+                        min: snapshot.min(),
+                        percentile75: snapshot.percentile75(),
+                        percentile95: snapshot.percentile95(),
+                        percentile98: snapshot.percentile98(),
+                        percentile99: snapshot.percentile99(),
+                        percentile999: snapshot.percentile999(),
+                        size: snapshot.size(),
+                        standardDeviation: snapshot.standardDeviation()
                     };
                 }
             });

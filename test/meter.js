@@ -75,6 +75,7 @@ test['decays over two marks and ticks'] = function (test) {
     var metrics = new Quantify();
     var meter = metrics.meter("foo");
 
+    console.log('10 second test...');
     meter.update(5);
     setTimeout(function () {
 
