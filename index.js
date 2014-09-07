@@ -41,6 +41,11 @@ var Histogram = require('./entries/histogram.js');
 var Meter = require('./entries/meter.js');
 var Timer = require('./entries/timer.js');
 
+function getTime() {
+    var hrtime = process.hrtime();
+    return (hrtime[0] * 1000) + (hrtime[1] / (1000000)); // to milliseconds
+};
+
 /*
   * `name`: _String_ Quantify instance name.
 */
@@ -197,6 +202,7 @@ Quantify.prototype.subscribe = function subscribe(config) {
             counters: {},
             gauges: {},
             histograms: {},
+            latency: getTime(),
             meters: {},
             timers: {}
         };
@@ -344,6 +350,7 @@ Quantify.prototype.subscribe = function subscribe(config) {
         }
 
         process.nextTick(function () {
+            data.latency = getTime() - data.latency;
             self.emit(subscriptionName, data);
         });
     };

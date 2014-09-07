@@ -356,6 +356,7 @@ setTimeout(function () {
 
   * `function (data) {}`
     * `data`: _Object_ Object containing counters, gauges, histograms, and meters corresponding to the given `<subscriptionName>`.
+      * `latency`: _Number_ Number of milliseconds it took to prepare this subscription.
       * `counters`: _Object_ Object containing counters by name. Each counter having the property: `value`.
       * `gauges`: _Object_ Object containing gauges by name. Each gauge having the property: `value`.
       * `histograms`: _Object_ Object containing histograms by name. Each histogram having the properties: `max`, `mean`, `median`, `min`, `percentile75`, `percentile95`, `percentile98`, `percentile99`, `percentile999`, `size`, `standardDeviation`.

@@ -83,6 +83,28 @@ test['emits event with all metrics when subscription name method is invoked'] = 
     metrics[subscriptionName]();
 };
 
+test['emits the latency of preparing metrics'] = function (test) {
+    test.expect(1);
+    var metrics = new Quantify();
+    metrics.counter("foo");
+    metrics.counter("bar");
+    metrics.gauge("foo");
+    metrics.gauge("bar");
+    metrics.histogram("foo");
+    metrics.histogram("bar");
+    metrics.meter("foo");
+    metrics.meter("bar");
+    metrics.timer("foo");
+    metrics.timer("bar");
+
+    var subscriptionName = metrics.subscribe();
+    metrics.on(subscriptionName, function (data) {
+        test.ok(data.latency > 0);
+        test.done();
+    });
+    metrics[subscriptionName]();
+};
+
 test['emits event with counters matching counters filter'] = function (test) {
     test.expect(3);
     var metrics = new Quantify();
