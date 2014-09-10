@@ -164,7 +164,7 @@ npm test
   * [quantify.subscribe(config)](#quantifysubscribeconfig)
   * [quantify.timer(name)](#quantifytimername)
   * [quantify.unsubscribe(subscriptionName)](#quantifyunsubscribesubscriptionname)
-  * [Event '\<subscriptionName\>'](#event-subscriptionname)
+  * [Event '&lt;subscriptionName&gt;'](#event-subscriptionname)
 
 ### new Quantify(name)
 
