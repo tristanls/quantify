@@ -102,16 +102,16 @@ metrics.on(subscriptionName, function (data) {
         console.log(res.statusCode);
     });
     req.write("label:" + data.label + '\n');
-    // for counter and gauge FIELDS = ['value']
+    // COUNTER_FIELDS and GAUGE_FIELDS = ['value']
     req.write("counter.foo:" + data.counters.foo.value + "|c\n");
     req.write("gauge.foo:" + data.gauges.foo.value + "|g\n");
-    metrics.histogram.FIELDS.forEach(function (field) {
+    Quantify.HISTOGRAM_FIELDS.forEach(function (field) {
         req.write("histogram.foo." + field + ":" + data.histograms.foo[field] + "|g\n");
     });
-    metrics.meter.FIELDS.forEach(function (field) {
+    Quantify.METER_FIELDS.forEach(function (field) {
         req.write("meter.foo." + field + ":" + data.meters.foo[field] + "|g\n");
     });
-    metrics.timer.FIELDS.forEach(function (field) {
+    Quantify.TIMER_FIELDS.forEach(function (field) {
         req.write("timer.foo." + field + ":" + data.timers.foo[field] + "|g\n");
     });
     req.end();
