@@ -87,7 +87,7 @@ metrics.on(subscriptionName, function (data) {
     console.log(data.timers.foo.percentile98); // 98th percentile
     console.log(data.timers.foo.percentile99); // 99th percentile
     console.log(data.timers.foo.percentile999); // 99.9th percentile
-    console.log(data.timers.foo.size); // size
+    console.log(data.timers.foo.size); // sample size
     console.log(data.timers.foo.standardDeviation); // standard deviation
 });
 metrics.on(subscriptionName, function (data) {
@@ -102,40 +102,18 @@ metrics.on(subscriptionName, function (data) {
         console.log(res.statusCode);
     });
     req.write("label:" + data.label + '\n');
+    // for counter and gauge FIELDS = ['value']
     req.write("counter.foo:" + data.counters.foo.value + "|c\n");
     req.write("gauge.foo:" + data.gauges.foo.value + "|g\n");
-    req.write("histogram.foo.max:" + data.histograms.foo.max + "|g\n");
-    req.write("histogram.foo.mean:" + data.histograms.foo.mean + "|g\n");
-    req.write("histogram.foo.median:" + data.histograms.foo.median + "|g\n");
-    req.write("histogram.foo.min:" + data.histograms.foo.min + "|g\n");
-    req.write("histogram.foo.p75:" + data.histograms.foo.percentile75 + "|g\n");
-    req.write("histogram.foo.p95:" + data.histograms.foo.percentile95 + "|g\n");
-    req.write("histogram.foo.p98:" + data.histograms.foo.percentile98 + "|g\n");
-    req.write("histogram.foo.p99:" + data.histograms.foo.percentile99 + "|g\n");
-    req.write("histogram.foo.p999:" + data.histograms.foo.percentile999 + "|g\n");
-    req.write("histogram.foo.size:" + data.histograms.foo.size + "|g\n");
-    req.write("histogram.foo.stdDev:" + data.histograms.foo.standardDeviation + "|g\n");
-    req.write("meter.foo.count:" + data.meters.foo.count + "|g\n");
-    req.write("meter.foo.meanRate:" + data.meters.foo.meanRate + "|g\n");
-    req.write("meter.foo.oneMinuteRate:" + data.meters.foo.oneMinuteRate + "|g\n");
-    req.write("meter.foo.fiveMinuteRate:" + data.meters.foo.fiveMinuteRate + "|g\n");
-    req.write("meter.foo.fifteenMinuteRate:" + data.meters.foo.fifteenMinuteRate + "|g\n");
-    req.write("timer.foo.count:" + data.timers.foo.count + "|g\n");
-    req.write("timer.foo.meanRate:" + data.timers.foo.meanRate + "|g\n");
-    req.write("timer.foo.oneMinuteRate:" + data.timers.foo.oneMinuteRate + "|g\n");
-    req.write("timer.foo.fiveMinuteRate:" + data.timers.foo.fiveMinuteRate + "|g\n");
-    req.write("timer.foo.fifteenMinuteRate:" + data.timers.foo.fifteenMinuteRate + "|g\n");
-    req.write("timer.foo.max:" + data.timers.foo.max + "|g\n");
-    req.write("timer.foo.mean:" + data.timers.foo.mean + "|g\n");
-    req.write("timer.foo.median:" + data.timers.foo.median + "|g\n");
-    req.write("timer.foo.min:" + data.timers.foo.min + "|g\n");
-    req.write("timer.foo.p75:" + data.timers.foo.percentile75 + "|g\n");
-    req.write("timer.foo.p95:" + data.timers.foo.percentile95 + "|g\n");
-    req.write("timer.foo.p98:" + data.timers.foo.percentile98 + "|g\n");
-    req.write("timer.foo.p99:" + data.timers.foo.percentile99 + "|g\n");
-    req.write("timer.foo.p999:" + data.timers.foo.percentile999 + "|g\n");
-    req.write("timer.foo.size:" + data.timers.foo.size + "|g\n");
-    req.write("timer.foo.stdDev:" + data.timers.foo.standardDeviation + "|g\n");
+    metrics.histogram.FIELDS.forEach(function (field) {
+        req.write("histogram.foo." + field + ":" + data.histograms.foo[field] + "|g\n");
+    });
+    metrics.meter.FIELDS.forEach(function (field) {
+        req.write("meter.foo." + field + ":" + data.meters.foo[field] + "|g\n");
+    });
+    metrics.timer.FIELDS.forEach(function (field) {
+        req.write("timer.foo." + field + ":" + data.timers.foo[field] + "|g\n");
+    });
     req.end();
 });
 
@@ -164,12 +142,21 @@ npm test
 
   * [new Quantify(name)](#new-quantifyname)
   * [quantify.counter(name)](#quantifycountername)
+  * [quantify.counter.FIELDS](#quantifycounterfields)
   * [quantify.gauge(name)](#quantifygaugename)
+  * [quantify.gauge.FIELDS](#quantifygaugefields)
   * [quantify.getMetrics(filters)](#quantifygetmetricsfilters)
   * [quantify.histogram(name)](#quantifyhistogramname)
+  * [quantify.histogram.FIELDS](#quantifyhistogramfields)
+  * [quantify.histogram.MEASURE_FIELDS](#quantifyhistogrammeasure-fields)
   * [quantify.meter(name)](#quantifymetername)
+  * [quantify.meter.FIELDS](#quantifymeterfields)
+  * [quantify.meter.RATE_FIELDS](#quantifymeterrate-fields)
   * [quantify.subscribe(config)](#quantifysubscribeconfig)
   * [quantify.timer(name)](#quantifytimername)
+  * [quantify.timer.FIELDS](#quantifytimerfields)
+  * [quantify.timer.MEASURE_FIELDS](#quantifytimermeasure-fields)
+  * [quantify.timer.RATE_FIELDS](#quantifytimerrate-fields)
   * [quantify.unsubscribe(subscriptionName)](#quantifyunsubscribesubscriptionname)
   * [Event '&lt;subscriptionName&gt;'](#event-subscriptionname)
 
@@ -193,6 +180,12 @@ counter.update(1); // increment
 counter.update(-1); // decrement
 ```
 
+### quantify.counter.FIELDS
+
+  * ['value']
+
+Counter only has `value` field.
+
 ### quantify.gauge(name)
 
   * `name`: _String_ Gauge name.
@@ -208,6 +201,12 @@ gauge.update(17); // set to 17
 gauge.update(10); // set to 10
 gauge.update(122); // set to 122
 ```
+
+### quantify.gauge.FIELDS
+
+  * ['value']
+
+Gauge only has `value` field.
 
 ### quantify.getMetrics(filters)
 
@@ -259,6 +258,18 @@ histogram.update(10);
 histogram.update(122);
 ```
 
+### quantify.histogram.FIELDS
+
+  * ['max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation', 'size']
+
+All histogram fields.
+
+### quantify.histogram.MEASURE_FIELDS
+
+  * ['max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation']
+
+`MEASURE_FIELDS` are the histogram `FIELDS` that share the measure unit. The measure unit is the unit associated with the value given to `histogram.update(<value>)`.
+
 ### quantify.meter(name)
 
   * `name`: _String_ Meter name.
@@ -274,6 +285,18 @@ meter.update();
 meter.update();
 meter.update(2);
 ```
+
+### quantify.meter.FIELDS
+
+  * ['count', 'meanRate', 'oneMinuteRate','fiveMinuteRate', 'fifteenMinuteRate']
+
+All meter fields.
+
+### quantify.meter.RATE_FIELDS
+
+  * ['meanRate', 'oneMinuteRate', 'fiveMinuteRate', 'fifteenMinuteRate']
+
+`RATE_FIELDS` are the meter `FIELDS` that are per second rates.
 
 ### quantify.subscribe(config)
 
@@ -345,7 +368,7 @@ setInterval(function () { metrics[everyMinute](); }, 1000 * 60);
 setInterval(function () { metrics[everyFiveMinutes](); }, 1000 * 60 * 5);
 ```
 
-Lastly, the reason Quantify emits events instead of returning a value from a method call is so that multiple handlers can subscribe to the event:
+Lastly, Quantify enables mutliple handlers to subscribe to the emitted subscription event:
 
 ```javascript
 var metrics = new Quantify();
@@ -387,6 +410,26 @@ setTimeout(function () {
     stopwatch.stop(); // stop measuring a time interval and record it
 }, 100);
 ```
+
+If you use `stopwatch` functionality, the interval is calculated in milliseconds.
+
+### quantify.timer.FIELDS
+
+  * ['count', 'meanRate', 'oneMinuteRate', 'fiveMinuteRate', 'fifteenMinuteRate', 'max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation', 'size']
+
+All timer fields.
+
+### quantify.timer.MEASURE_FIELDS
+
+  * ['max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation']
+
+`MEASURE_FIELDS` are the timer `FIELDS` that share the measure unit. The measure unit is the unit associated with the value given to `timer.update(<value>)`.
+
+### quantify.timer.RATE_FIELDS
+
+  * ['meanRate', 'oneMinuteRate', 'fiveMinuteRate', 'fifteenMinuteRate'];
+
+`RATE_FIELDS` are the timer `FIELDS` that are per second rates.
 
 ### quantify.unsubscribe(subscriptionName)
 

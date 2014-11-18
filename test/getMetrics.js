@@ -36,7 +36,7 @@ var Quantify = require('../index.js');
 var test = module.exports = {};
 
 test['returns all metrics when invoked'] = function (test) {
-    test.expect(15);
+    test.expect(79);
     var metrics = new Quantify();
     metrics.counter("foo");
     metrics.counter("bar");
@@ -51,20 +51,14 @@ test['returns all metrics when invoked'] = function (test) {
 
     var data = metrics.getMetrics();
     test.ok(data.counters);
-    test.equal(data.counters.foo.value, 0);
-    test.equal(data.counters.bar.value, 0);
-    test.ok(data.gauges);
-    test.equal(data.gauges.foo.value, 0);
-    test.equal(data.gauges.bar.value, 0);
-    test.ok(data.histograms);
-    test.equal(data.histograms.foo.size, 0);
-    test.equal(data.histograms.bar.size, 0);
-    test.ok(data.meters);
-    test.equal(data.meters.foo.count, 0);
-    test.equal(data.meters.bar.count, 0);
-    test.ok(data.timers);
-    test.equal(data.timers.foo.count, 0);
-    test.equal(data.timers.bar.count, 0);
+    ['counter', 'gauge', 'histogram', 'meter', 'timer'].forEach(function (entry) {
+        metrics[entry].FIELDS.forEach(function (field) {
+            test.ok(field in data[entry + 's'].foo);
+            test.ok(field in data[entry + 's'].bar);
+        })
+        test.equal(metrics[entry].FIELDS.length, Object.keys(data[entry + 's'].foo).length);
+        test.equal(metrics[entry].FIELDS.length, Object.keys(data[entry + 's'].bar).length);
+    });
     test.done();
 };
 
@@ -88,95 +82,77 @@ test['returns the latency of preparing metrics'] = function (test) {
 };
 
 test['returns metrics with counters matching counters filter'] = function (test) {
-    test.expect(3);
+    test.expect(4);
     var metrics = new Quantify();
     metrics.counter("foo");
     metrics.counter("bar");
 
     var data = metrics.getMetrics({counters: /foo/});
     test.ok(data.counters);
-    test.equal(Object.keys(data.counters).length, 1);
-    test.equal(data.counters.foo.value, 0);
+    test.ok(!('bar' in data.counters));
+    test.ok('value' in data.counters.foo);
+    test.equal(metrics.counter.FIELDS.length, Object.keys(data.counters.foo).length);
     test.done();
 };
 
 test['returns metrics with counters matching gauges filter'] = function (test) {
-    test.expect(3);
+    test.expect(4);
     var metrics = new Quantify();
     metrics.gauge("foo");
     metrics.gauge("bar");
 
     var data = metrics.getMetrics({gauges: /foo/});
     test.ok(data.gauges);
-    test.equal(Object.keys(data.gauges).length, 1);
-    test.equal(data.gauges.foo.value, 0);
+    test.ok(!('bar' in data.gauges));
+    test.ok('value' in data.gauges.foo);
+    test.equal(metrics.gauge.FIELDS.length, Object.keys(data.gauges.foo).length);
     test.done();
 };
 
 test['returns metrics with counters matching histograms filter'] = function (test) {
-    test.expect(13);
+    test.expect(14);
     var metrics = new Quantify();
     metrics.histogram("foo");
     metrics.histogram("bar");
 
     var data = metrics.getMetrics({histograms: /foo/});
     test.ok(data.histograms);
-    test.equal(Object.keys(data.histograms).length, 1);
-    test.equal(data.histograms.foo.max, 0);
-    test.equal(data.histograms.foo.mean, 0);
-    test.equal(data.histograms.foo.median, 0);
-    test.equal(data.histograms.foo.min, 0);
-    test.equal(data.histograms.foo.percentile75, 0);
-    test.equal(data.histograms.foo.percentile95, 0);
-    test.equal(data.histograms.foo.percentile98, 0);
-    test.equal(data.histograms.foo.percentile99, 0);
-    test.equal(data.histograms.foo.percentile999, 0);
-    test.equal(data.histograms.foo.size, 0);
-    test.equal(data.histograms.foo.standardDeviation, 0);
+    test.ok(!('bar' in data.histograms));
+    metrics.histogram.FIELDS.forEach(function (field) {
+        test.ok(field in data.histograms.foo);
+    });
+    test.equal(metrics.histogram.FIELDS.length, Object.keys(data.histograms.foo).length);
     test.done();
 };
 
 test['returns metrics with counters matching meters filter'] = function (test) {
-    test.expect(7);
+    test.expect(8);
     var metrics = new Quantify();
     metrics.meter("foo");
     metrics.meter("bar");
 
     var data = metrics.getMetrics({meters: /foo/});
     test.ok(data.meters);
-    test.equal(Object.keys(data.meters).length, 1);
-    test.equal(data.meters.foo.count, 0);
-    test.equal(data.meters.foo.meanRate, 0);
-    test.equal(data.meters.foo.oneMinuteRate, 0);
-    test.equal(data.meters.foo.fiveMinuteRate, 0);
-    test.equal(data.meters.foo.fifteenMinuteRate, 0);
+    test.ok(!('bar' in data.meters));
+    metrics.meter.FIELDS.forEach(function (field) {
+        test.ok(field in data.meters.foo);
+    });
+    test.equal(metrics.meter.FIELDS.length, Object.keys(data.meters.foo).length);
     test.done();
 };
 
 test['returns metrics with counters matching timers filter'] = function (test) {
-    test.expect(18);
+    test.expect(19);
     var metrics = new Quantify();
     metrics.timer("foo");
     metrics.timer("bar");
 
     var data = metrics.getMetrics({timers: /foo/});
     test.ok(data.timers);
-    test.equal(Object.keys(data.timers).length, 1);
-    test.equal(data.timers.foo.count, 0);
-    test.equal(data.timers.foo.meanRate, 0);
-    test.equal(data.timers.foo.oneMinuteRate, 0);
-    test.equal(data.timers.foo.fiveMinuteRate, 0);
-    test.equal(data.timers.foo.fifteenMinuteRate, 0);
-    test.equal(data.timers.foo.max, 0);
-    test.equal(data.timers.foo.mean, 0);
-    test.equal(data.timers.foo.median, 0);
-    test.equal(data.timers.foo.min, 0);
-    test.equal(data.timers.foo.percentile75, 0);
-    test.equal(data.timers.foo.percentile95, 0);
-    test.equal(data.timers.foo.percentile98, 0);
-    test.equal(data.timers.foo.percentile99, 0);
-    test.equal(data.timers.foo.percentile999, 0);
-    test.equal(data.timers.foo.size, 0);
-    test.equal(data.timers.foo.standardDeviation, 0);
+    test.ok(!('bar' in data.timers));
+    metrics.timer.FIELDS.forEach(function (field) {
+        test.ok(field in data.timers.foo);
+    });
+    test.equal(metrics.timer.FIELDS.length, Object.keys(data.timers.foo).length);
     test.done();
 };
