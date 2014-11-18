@@ -12,6 +12,10 @@ The _subscription_ concept is elaborated in the [quantify.subscribe(config)](#qu
 
 The histogram implementation uses weighted sampling and exponentially decaying reservoir described [here](https://github.com/dropwizard/metrics/pull/421).
 
+## Contributors
+
+[@tristanls](https://github.com/tristanls), [@lpearson05](https://github.com/lpearson05)
+
 ## Usage
 
 ```javascript
@@ -44,6 +48,8 @@ meter.update(10); // 10 "simultaneous" marks
 var stopwatch = timer.start(); // start a timer
 stopwatch.stop(); // stop a timer
 timer.update(178); // explicitly update the timer with given value
+
+console.dir(metrics.getMetrics()); // get metrics synchronously
 
 var subscriptionName = metrics.subscribe({label: "mySubscription"});
 metrics.on(subscriptionName, function (data) {
@@ -159,6 +165,7 @@ npm test
   * [new Quantify(name)](#new-quantifyname)
   * [quantify.counter(name)](#quantifycountername)
   * [quantify.gauge(name)](#quantifygaugename)
+  * [quantify.getMetrics(filters)](#quantifygetmetricsfilters)
   * [quantify.histogram(name)](#quantifyhistogramname)
   * [quantify.meter(name)](#quantifymetername)
   * [quantify.subscribe(config)](#quantifysubscribeconfig)
@@ -200,6 +207,40 @@ var gauge = metrics.gauge("foo");
 gauge.update(17); // set to 17
 gauge.update(10); // set to 10
 gauge.update(122); // set to 122
+```
+
+### quantify.getMetrics(filters)
+
+  * `filters`: _Object_ _(Default: undefined)_
+    * `counters`: _RegExp_ _(Default: undefined)_ If specified, subscription
+        will only return counters with names that match the RegExp.
+    * `gauges`: _RegExp_ _(Default: undefined)_ If specified, subscription
+        will only return gauges with names that match the RegExp.
+    * `histograms`: _RegExp_ _(Default: undefined)_ If specified, subscription
+        will only return histograms with names that match the RegExp.
+    * `meters`: _RegExp_ _(Default: undefined)_ If specified, subscription
+        will only return meters with names that match the RegExp.
+    * `timers`: _RegExp_ _(Default: undefined)_ If specified, subscription
+        will only return timers with names that match the RegExp.
+  * Return: _Object_ Snapshot of metrics.
+
+Synchronously calculate the snapshot of all metrics and return it.
+
+With filters, one can specify what should be returned:
+
+```javascript
+var metrics = new Quantify();
+
+var fooCounter = metrics.counter("foo");
+var barCounter = metrics.counter("bar");
+
+var fooSnasphot = metrics.getMetrics({filters: {counters: /foo/}});
+console.log(fooSnasphot.counters.foo.value); // 0
+console.log(fooSnasphot.counters.bar); // undefined
+
+var barSnapshot = metrics.getMetrics({filters: {counters: /bar/}});
+console.log(barSnapshot.counters.foo); // undefined
+console.log(barSnapshot.counters.bar.value); // 0
 ```
 
 ### quantify.histogram(name)

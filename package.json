@@ -20,6 +20,9 @@
     "telemetry",
     "stats"
   ],
-  "author": "Tristan Slominski <tristan.slominski@gmail.com>",
+  "contributors": [
+    "Tristan Slominski <tristan.slominski@gmail.com>",
+    "Leora Pearson <lpearson05@gmail.com>"
+  ],
   "license": "MIT"
 }

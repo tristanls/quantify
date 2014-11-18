@@ -4,7 +4,7 @@ subscribe.js - subscribe() test
 
 The MIT License (MIT)
 
-Copyright (c) 2014 Tristan Slominski
+Copyright (c) 2014 Tristan Slominski, Leora Pearson
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -47,63 +47,32 @@ test['emits event with subscription name when subscription name method is invoke
     metrics[subscriptionName]();
 };
 
-test['emits event with all metrics when subscription name method is invoked'] = function (test) {
-    test.expect(15);
-    var metrics = new Quantify();
-    metrics.counter("foo");
-    metrics.counter("bar");
-    metrics.gauge("foo");
-    metrics.gauge("bar");
-    metrics.histogram("foo");
-    metrics.histogram("bar");
-    metrics.meter("foo");
-    metrics.meter("bar");
-    metrics.timer("foo");
-    metrics.timer("bar");
-
-    var subscriptionName = metrics.subscribe();
-    metrics.on(subscriptionName, function (data) {
-        test.ok(data.counters);
-        test.equal(data.counters.foo.value, 0);
-        test.equal(data.counters.bar.value, 0);
-        test.ok(data.gauges);
-        test.equal(data.gauges.foo.value, 0);
-        test.equal(data.gauges.bar.value, 0);
-        test.ok(data.histograms);
-        test.equal(data.histograms.foo.size, 0);
-        test.equal(data.histograms.bar.size, 0);
-        test.ok(data.meters);
-        test.equal(data.meters.foo.count, 0);
-        test.equal(data.meters.bar.count, 0);
-        test.ok(data.timers);
-        test.equal(data.timers.foo.count, 0);
-        test.equal(data.timers.bar.count, 0);
-        test.done();
-    });
-    metrics[subscriptionName]();
-};
-
-test['emits the latency of preparing metrics'] = function (test) {
+test['emits event with subscription label when subscription name method is invoked'] = function (test) {
     test.expect(1);
     var metrics = new Quantify();
-    metrics.counter("foo");
-    metrics.counter("bar");
-    metrics.gauge("foo");
-    metrics.gauge("bar");
-    metrics.histogram("foo");
-    metrics.histogram("bar");
-    metrics.meter("foo");
-    metrics.meter("bar");
-    metrics.timer("foo");
-    metrics.timer("bar");
 
-    var subscriptionName = metrics.subscribe();
+    var subscriptionName = metrics.subscribe({label: 'foo'});
     metrics.on(subscriptionName, function (data) {
-        test.ok(data.latency > 0);
+        test.equal(data.label, 'foo');
         test.done();
     });
     metrics[subscriptionName]();
 };
+
+test['emits event returned by getMetrics() call'] = function (test) {
+    test.expect(1);
+    var metrics = new Quantify();
+    var _data = {};
+    metrics.getMetrics = function () {return _data;};
+
+    var subscriptionName = metrics.subscribe();
+    metrics.on(subscriptionName, function (data) {
+        test.strictEqual(data, _data);
+        test.done();
+    });
+    metrics[subscriptionName]();
+};
+
 
 test['emits event with counters matching counters filter'] = function (test) {
     test.expect(3);
