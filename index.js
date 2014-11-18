@@ -63,6 +63,8 @@ var Quantify = module.exports = function Quantify(name) {
 
 util.inherits(Quantify, events.EventEmitter);
 
+Quantify.COUNTER_FIELDS = ['value'];
+
 /*
   * `name`: _String_ Counter name.
   * Return: _Counter_ Instance of a Counter entry.
@@ -83,7 +85,7 @@ Quantify.prototype.counter = function counter(name) {
     return entry;
 };
 
-Quantify.prototype.counter.FIELDS = ['value'];
+Quantify.GAUGE_FIELDS = ['value'];
 
 /*
   * `name`: _String_ Gauge name.
@@ -104,8 +106,6 @@ Quantify.prototype.gauge = function gauge(name) {
     self._gauges[name] = entry;
     return entry;
 };
-
-Quantify.prototype.gauge.FIELDS = ['value'];
 
 /*
   * `filters`: _Object_ _(Default: undefined)_
@@ -276,6 +276,12 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
     return data;
 };
 
+Quantify.HISTOGRAM_MEASURE_FIELDS = ['max', 'mean', 'median', 'min',
+    'percentile75', 'percentile95', 'percentile98', 'percentile99',
+    'percentile999', 'standardDeviation'];
+
+Quantify.HISTOGRAM_FIELDS = Quantify.HISTOGRAM_MEASURE_FIELDS.concat(['size']);
+
 /*
   * `name`: _String_ Histogram name.
   * Return: _Histogram_ Instance of a Histogram entry.
@@ -296,12 +302,10 @@ Quantify.prototype.histogram = function histogram(name) {
     return entry;
 };
 
-Quantify.prototype.histogram.MEASURE_FIELDS = ['max', 'mean', 'median', 'min',
-    'percentile75', 'percentile95', 'percentile98', 'percentile99',
-    'percentile999', 'standardDeviation'];
+Quantify.METER_RATE_FIELDS = ['meanRate', 'oneMinuteRate', 'fiveMinuteRate',
+    'fifteenMinuteRate'];
 
-Quantify.prototype.histogram.FIELDS =
-    Quantify.prototype.histogram.MEASURE_FIELDS.concat(['size']);
+Quantify.METER_FIELDS = Quantify.METER_RATE_FIELDS.concat(['count']);
 
 /*
   * `name`: _String_ Meter name.
@@ -323,11 +327,17 @@ Quantify.prototype.meter = function meter(name) {
     return entry;
 };
 
-Quantify.prototype.meter.RATE_FIELDS = ['meanRate', 'oneMinuteRate',
-    'fiveMinuteRate', 'fifteenMinuteRate'];
+Quantify.TIMER_MEASURE_FIELDS = ['max', 'mean', 'median', 'min', 'percentile75',
+    'percentile95', 'percentile98', 'percentile99', 'percentile999',
+    'standardDeviation'];
 
-Quantify.prototype.meter.FIELDS =
-    Quantify.prototype.meter.RATE_FIELDS.concat(['count']);
+Quantify.TIMER_RATE_FIELDS = ['meanRate', 'oneMinuteRate', 'fiveMinuteRate',
+    'fifteenMinuteRate'];
+
+Quantify.TIMER_FIELDS =
+    Quantify.TIMER_MEASURE_FIELDS.concat(
+        Quantify.TIMER_RATE_FIELDS.concat(
+            ['count', 'size']));
 
 /*
   * `name`: _String_ Timer name.
@@ -348,18 +358,6 @@ Quantify.prototype.timer = function timer(name) {
     self._timers[name] = entry;
     return entry;
 };
-
-Quantify.prototype.timer.MEASURE_FIELDS = ['max', 'mean', 'median', 'min',
-    'percentile75', 'percentile95', 'percentile98', 'percentile99',
-    'percentile999', 'standardDeviation'];
-
-Quantify.prototype.timer.RATE_FIELDS = ['meanRate', 'oneMinuteRate',
-    'fiveMinuteRate', 'fifteenMinuteRate'];
-
-Quantify.prototype.timer.FIELDS =
-    Quantify.prototype.timer.MEASURE_FIELDS.concat(
-        Quantify.prototype.timer.RATE_FIELDS.concat(
-            ['count', 'size']));
 
 /*
   * `config`: _Object

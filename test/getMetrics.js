@@ -52,12 +52,12 @@ test['returns all metrics when invoked'] = function (test) {
     var data = metrics.getMetrics();
     test.ok(data.counters);
     ['counter', 'gauge', 'histogram', 'meter', 'timer'].forEach(function (entry) {
-        metrics[entry].FIELDS.forEach(function (field) {
+        Quantify[entry.toUpperCase() + "_FIELDS"].forEach(function (field) {
             test.ok(field in data[entry + 's'].foo);
             test.ok(field in data[entry + 's'].bar);
         })
-        test.equal(metrics[entry].FIELDS.length, Object.keys(data[entry + 's'].foo).length);
-        test.equal(metrics[entry].FIELDS.length, Object.keys(data[entry + 's'].bar).length);
+        test.equal(Quantify[entry.toUpperCase() + "_FIELDS"].length, Object.keys(data[entry + 's'].foo).length);
+        test.equal(Quantify[entry.toUpperCase() + "_FIELDS"].length, Object.keys(data[entry + 's'].bar).length);
     });
     test.done();
 };
@@ -91,7 +91,7 @@ test['returns metrics with counters matching counters filter'] = function (test)
     test.ok(data.counters);
     test.ok(!('bar' in data.counters));
     test.ok('value' in data.counters.foo);
-    test.equal(metrics.counter.FIELDS.length, Object.keys(data.counters.foo).length);
+    test.equal(Quantify.COUNTER_FIELDS.length, Object.keys(data.counters.foo).length);
     test.done();
 };
 
@@ -105,7 +105,7 @@ test['returns metrics with counters matching gauges filter'] = function (test) {
     test.ok(data.gauges);
     test.ok(!('bar' in data.gauges));
     test.ok('value' in data.gauges.foo);
-    test.equal(metrics.gauge.FIELDS.length, Object.keys(data.gauges.foo).length);
+    test.equal(Quantify.GAUGE_FIELDS.length, Object.keys(data.gauges.foo).length);
     test.done();
 };
 
@@ -118,10 +118,10 @@ test['returns metrics with counters matching histograms filter'] = function (tes
     var data = metrics.getMetrics({histograms: /foo/});
     test.ok(data.histograms);
     test.ok(!('bar' in data.histograms));
-    metrics.histogram.FIELDS.forEach(function (field) {
+    Quantify.HISTOGRAM_FIELDS.forEach(function (field) {
         test.ok(field in data.histograms.foo);
     });
-    test.equal(metrics.histogram.FIELDS.length, Object.keys(data.histograms.foo).length);
+    test.equal(Quantify.HISTOGRAM_FIELDS.length, Object.keys(data.histograms.foo).length);
     test.done();
 };
 
@@ -134,10 +134,10 @@ test['returns metrics with counters matching meters filter'] = function (test) {
     var data = metrics.getMetrics({meters: /foo/});
     test.ok(data.meters);
     test.ok(!('bar' in data.meters));
-    metrics.meter.FIELDS.forEach(function (field) {
+    Quantify.METER_FIELDS.forEach(function (field) {
         test.ok(field in data.meters.foo);
     });
-    test.equal(metrics.meter.FIELDS.length, Object.keys(data.meters.foo).length);
+    test.equal(Quantify.METER_FIELDS.length, Object.keys(data.meters.foo).length);
     test.done();
 };
 
@@ -150,9 +150,9 @@ test['returns metrics with counters matching timers filter'] = function (test) {
     var data = metrics.getMetrics({timers: /foo/});
     test.ok(data.timers);
     test.ok(!('bar' in data.timers));
-    metrics.timer.FIELDS.forEach(function (field) {
+    Quantify.TIMER_FIELDS.forEach(function (field) {
         test.ok(field in data.timers.foo);
     });
-    test.equal(metrics.timer.FIELDS.length, Object.keys(data.timers.foo).length);
+    test.equal(Quantify.TIMER_FIELDS.length, Object.keys(data.timers.foo).length);
     test.done();
 };

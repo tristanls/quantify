@@ -140,25 +140,79 @@ npm test
 
 **Public API**
 
+  * [Quantify.COUNTER_FIELDS](#quantifycounter_fields)
+  * [Quantify.GAUGE_FIELDS](#quantifygauge_fields)
+  * [Quantify.HISTOGRAM_FIELDS](#quantifyhistogram_fields)
+  * [Quantify.HISTOGRAM_MEASURE_FIELDS](#quantifyhistogram_measure_fields)
+  * [Quantify.METER_FIELDS](#quantifymeter_fields)
+  * [Quantify.METER_RATE_FIELDS](#quantifymeter_rate_fields)
+  * [Quantify.TIMER_FIELDS](#quantifytimer_fields)
+  * [Quantify.TIMER_MEASURE_FIELDS](#quantifytimer_measure_fields)
+  * [Quantify.TIMER_RATE_FIELDS](#quantifytimer_rate_fields)
   * [new Quantify(name)](#new-quantifyname)
   * [quantify.counter(name)](#quantifycountername)
-  * [quantify.counter.FIELDS](#quantifycounterfields)
   * [quantify.gauge(name)](#quantifygaugename)
-  * [quantify.gauge.FIELDS](#quantifygaugefields)
   * [quantify.getMetrics(filters)](#quantifygetmetricsfilters)
   * [quantify.histogram(name)](#quantifyhistogramname)
-  * [quantify.histogram.FIELDS](#quantifyhistogramfields)
-  * [quantify.histogram.MEASURE_FIELDS](#quantifyhistogrammeasure_fields)
   * [quantify.meter(name)](#quantifymetername)
-  * [quantify.meter.FIELDS](#quantifymeterfields)
-  * [quantify.meter.RATE_FIELDS](#quantifymeterrate_fields)
   * [quantify.subscribe(config)](#quantifysubscribeconfig)
   * [quantify.timer(name)](#quantifytimername)
-  * [quantify.timer.FIELDS](#quantifytimerfields)
-  * [quantify.timer.MEASURE_FIELDS](#quantifytimermeasure_fields)
-  * [quantify.timer.RATE_FIELDS](#quantifytimerrate_fields)
   * [quantify.unsubscribe(subscriptionName)](#quantifyunsubscribesubscriptionname)
   * [Event '&lt;subscriptionName&gt;'](#event-subscriptionname)
+
+### Quantify.COUNTER_FIELDS
+
+  * ['value']
+
+Counter only has `value` field.
+
+### Quantify.GAUGE_FIELDS
+
+  * ['value']
+
+Gauge only has `value` field.
+
+### Quantify.HISTOGRAM_FIELDS
+
+  * ['max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation', 'size']
+
+All histogram fields.
+
+### Quantify.HISTOGRAM_MEASURE_FIELDS
+
+  * ['max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation']
+
+`HISTOGRAM_MEASURE_FIELDS` are the `HISTOGRAM_FIELDS` that share the measure unit. The measure unit is the unit associated with the value given to `histogram.update(<value>)`.
+
+### Quantify.METER_FIELDS
+
+  * ['count', 'meanRate', 'oneMinuteRate','fiveMinuteRate', 'fifteenMinuteRate']
+
+All meter fields.
+
+### Quantify.METER_RATE_FIELDS
+
+  * ['meanRate', 'oneMinuteRate', 'fiveMinuteRate', 'fifteenMinuteRate']
+
+`METER_RATE_FIELDS` are the `METER_FIELDS` that are per second rates.
+
+### Quantify.TIMER_FIELDS
+
+  * ['count', 'meanRate', 'oneMinuteRate', 'fiveMinuteRate', 'fifteenMinuteRate', 'max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation', 'size']
+
+All timer fields.
+
+### Quantify.TIMER_MEASURE_FIELDS
+
+  * ['max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation']
+
+`TIMER_MEASURE_FIELDS` are the `TIMER_FIELDS` that share the measure unit. The measure unit is the unit associated with the value given to `timer.update(<value>)`.
+
+### Quantify.TIMER_RATE_FIELDS
+
+  * ['meanRate', 'oneMinuteRate', 'fiveMinuteRate', 'fifteenMinuteRate'];
+
+`TIMER_RATE_FIELDS` are the `TIMER_FIELDS` that are per second rates.
 
 ### new Quantify(name)
 
@@ -180,12 +234,6 @@ counter.update(1); // increment
 counter.update(-1); // decrement
 ```
 
-### quantify.counter.FIELDS
-
-  * ['value']
-
-Counter only has `value` field.
-
 ### quantify.gauge(name)
 
   * `name`: _String_ Gauge name.
@@ -201,12 +249,6 @@ gauge.update(17); // set to 17
 gauge.update(10); // set to 10
 gauge.update(122); // set to 122
 ```
-
-### quantify.gauge.FIELDS
-
-  * ['value']
-
-Gauge only has `value` field.
 
 ### quantify.getMetrics(filters)
 
@@ -258,18 +300,6 @@ histogram.update(10);
 histogram.update(122);
 ```
 
-### quantify.histogram.FIELDS
-
-  * ['max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation', 'size']
-
-All histogram fields.
-
-### quantify.histogram.MEASURE_FIELDS
-
-  * ['max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation']
-
-`MEASURE_FIELDS` are the histogram `FIELDS` that share the measure unit. The measure unit is the unit associated with the value given to `histogram.update(<value>)`.
-
 ### quantify.meter(name)
 
   * `name`: _String_ Meter name.
@@ -285,18 +315,6 @@ meter.update();
 meter.update();
 meter.update(2);
 ```
-
-### quantify.meter.FIELDS
-
-  * ['count', 'meanRate', 'oneMinuteRate','fiveMinuteRate', 'fifteenMinuteRate']
-
-All meter fields.
-
-### quantify.meter.RATE_FIELDS
-
-  * ['meanRate', 'oneMinuteRate', 'fiveMinuteRate', 'fifteenMinuteRate']
-
-`RATE_FIELDS` are the meter `FIELDS` that are per second rates.
 
 ### quantify.subscribe(config)
 
@@ -412,24 +430,6 @@ setTimeout(function () {
 ```
 
 If you use `stopwatch` functionality, the interval is calculated in milliseconds.
-
-### quantify.timer.FIELDS
-
-  * ['count', 'meanRate', 'oneMinuteRate', 'fiveMinuteRate', 'fifteenMinuteRate', 'max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation', 'size']
-
-All timer fields.
-
-### quantify.timer.MEASURE_FIELDS
-
-  * ['max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation']
-
-`MEASURE_FIELDS` are the timer `FIELDS` that share the measure unit. The measure unit is the unit associated with the value given to `timer.update(<value>)`.
-
-### quantify.timer.RATE_FIELDS
-
-  * ['meanRate', 'oneMinuteRate', 'fiveMinuteRate', 'fifteenMinuteRate'];
-
-`RATE_FIELDS` are the timer `FIELDS` that are per second rates.
 
 ### quantify.unsubscribe(subscriptionName)
 
