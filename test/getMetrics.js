@@ -82,7 +82,7 @@ test['returns the latency of preparing metrics'] = function (test) {
 };
 
 test['returns metrics with counters matching counters filter'] = function (test) {
-    test.expect(4);
+    test.expect(5);
     var metrics = new Quantify();
     metrics.counter("foo");
     metrics.counter("bar");
@@ -91,12 +91,13 @@ test['returns metrics with counters matching counters filter'] = function (test)
     test.ok(data.counters);
     test.ok(!('bar' in data.counters));
     test.ok('value' in data.counters.foo);
+    test.ok(typeof data.counters.foo.value !== "function", "field: value is a function");
     test.equal(Quantify.COUNTER_FIELDS.length, Object.keys(data.counters.foo).length);
     test.done();
 };
 
 test['returns metrics with counters matching gauges filter'] = function (test) {
-    test.expect(4);
+    test.expect(5);
     var metrics = new Quantify();
     metrics.gauge("foo");
     metrics.gauge("bar");
@@ -105,12 +106,13 @@ test['returns metrics with counters matching gauges filter'] = function (test) {
     test.ok(data.gauges);
     test.ok(!('bar' in data.gauges));
     test.ok('value' in data.gauges.foo);
+    test.ok(typeof data.gauges.foo.value !== "function", "field: value is a function");
     test.equal(Quantify.GAUGE_FIELDS.length, Object.keys(data.gauges.foo).length);
     test.done();
 };
 
 test['returns metrics with counters matching histograms filter'] = function (test) {
-    test.expect(14);
+    test.expect(25);
     var metrics = new Quantify();
     metrics.histogram("foo");
     metrics.histogram("bar");
@@ -120,13 +122,14 @@ test['returns metrics with counters matching histograms filter'] = function (tes
     test.ok(!('bar' in data.histograms));
     Quantify.HISTOGRAM_FIELDS.forEach(function (field) {
         test.ok(field in data.histograms.foo);
+        test.ok(typeof data.histograms.foo[field] !== "function", "field: " + field + " is a function");
     });
     test.equal(Quantify.HISTOGRAM_FIELDS.length, Object.keys(data.histograms.foo).length);
     test.done();
 };
 
 test['returns metrics with counters matching meters filter'] = function (test) {
-    test.expect(8);
+    test.expect(13);
     var metrics = new Quantify();
     metrics.meter("foo");
     metrics.meter("bar");
@@ -136,13 +139,14 @@ test['returns metrics with counters matching meters filter'] = function (test) {
     test.ok(!('bar' in data.meters));
     Quantify.METER_FIELDS.forEach(function (field) {
         test.ok(field in data.meters.foo);
+        test.ok(typeof data.meters.foo[field] !== "function", "field: " + field + " is a function");
     });
     test.equal(Quantify.METER_FIELDS.length, Object.keys(data.meters.foo).length);
     test.done();
 };
 
 test['returns metrics with counters matching timers filter'] = function (test) {
-    test.expect(19);
+    test.expect(35);
     var metrics = new Quantify();
     metrics.timer("foo");
     metrics.timer("bar");
@@ -152,6 +156,7 @@ test['returns metrics with counters matching timers filter'] = function (test) {
     test.ok(!('bar' in data.timers));
     Quantify.TIMER_FIELDS.forEach(function (field) {
         test.ok(field in data.timers.foo);
+        test.ok(typeof data.timers.foo[field] !== "function", "field: " + field + " is a function");
     });
     test.equal(Quantify.TIMER_FIELDS.length, Object.keys(data.timers.foo).length);
     test.done();

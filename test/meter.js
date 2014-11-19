@@ -62,7 +62,7 @@ test['creates a meter with initial values of 0'] = function (test) {
     var metrics = new Quantify();
     var meter = metrics.meter("foo");
 
-    test.equal(meter.count, 0);
+    test.equal(meter.count(), 0);
     test.equal(meter.meanRate(), 0);
     test.equal(meter.oneMinuteRate(), 0);
     test.equal(meter.fiveMinuteRate(), 0);
@@ -79,7 +79,7 @@ test['decays over two marks and ticks'] = function (test) {
     meter.update(5);
     setTimeout(function () {
 
-        test.equal(meter.count, 5);
+        test.equal(meter.count(), 5);
         test.equal(meter.oneMinuteRate().toFixed(4), '0.0736');
         test.equal(meter.fiveMinuteRate().toFixed(4), '0.0163');
         test.equal(meter.fifteenMinuteRate().toFixed(4), '0.0055');
@@ -87,7 +87,7 @@ test['decays over two marks and ticks'] = function (test) {
         meter.update(10);
         setTimeout(function () {
 
-            test.equal(meter.count, 15);
+            test.equal(meter.count(), 15);
             test.equal(meter.oneMinuteRate().toFixed(3), '0.209');
             test.equal(meter.fiveMinuteRate().toFixed(3), '0.048');
             test.equal(meter.fifteenMinuteRate().toFixed(3), '0.016');

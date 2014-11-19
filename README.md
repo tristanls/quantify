@@ -538,14 +538,14 @@ Measures the rate at which events occur.
 
 **Public API**
 
-  * [meter.count](#metercount)
+  * [meter.count()](#metercount)
   * [meter.fifteenMinuteRate()](#meterfifteenminuterate)
   * [meter.fiveMinuteRate()](#meterfiveminuterate)
   * [meter.meanRate()](#metermeanrate)
   * [meter.oneMinuteRate()](#meteroneminuterate)
   * [meter.update(n)](#meterupdaten)
 
-### meter.count
+### meter.count()
 
 Returns the current count of meter updates.
 
