@@ -48,7 +48,7 @@ var Meter = module.exports = function Meter(config) {
 
     self.startTime = getTime();
     self.lastTick = self.startTime;
-    self.count = 0;
+    self._count = 0;
 
     self.m1rate = new ExponentiallyMovingWeightedAverage({
         timePeriod: 1000 * 60, // 1 minute
@@ -64,14 +64,20 @@ var Meter = module.exports = function Meter(config) {
     });
 };
 
+Meter.prototype.count = function count() {
+    var self = this;
+
+    return self._count;
+};
+
 Meter.prototype.meanRate = function meanRate() {
     var self = this;
 
-    if (self.count == 0) {
+    if (self._count == 0) {
         return 0;
     } else {
         var elapsed = getTime() - self.startTime;
-        return (self.count / elapsed) * 1000 /* per second */;
+        return (self._count / elapsed) * 1000 /* per second */;
     }
 };
 
@@ -119,7 +125,7 @@ Meter.prototype.update = function update(n) {
 
     n = n || 1;
     self.tickIfNecessary();
-    self.count += n;
+    self._count += n;
     self.m1rate.update(n);
     self.m5rate.update(n);
     self.m15rate.update(n);

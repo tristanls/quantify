@@ -49,7 +49,7 @@ var Timer = module.exports = function Timer() {
 Timer.prototype.count = function count() {
     var self = this;
 
-    return self.meter.count;
+    return self.meter.count();
 };
 
 Timer.prototype.fifteenMinuteRate = function fifteenMinuteRate() {

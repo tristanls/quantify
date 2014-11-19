@@ -172,10 +172,8 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
     Object.keys(self._meters).forEach(function (metric) {
         if (metric.match(filters.meters)) {
             var meter = self._meters[metric];
-            data.meters[metric] = {
-                count: meter.count
-            };
-            Quantify.METER_RATE_FIELDS.forEach(function (field) {
+            data.meters[metric] = {};
+            Quantify.METER_FIELDS.forEach(function (field) {
                 data.meters[metric][field] = meter[field]();
             });
         }
