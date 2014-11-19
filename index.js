@@ -133,52 +133,44 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
         timers: {}
     };
 
-    if (!filters || !(filters.counters instanceof RegExp)) {
-        Object.keys(self._counters).forEach(function (key) {
+    filters = filters || {};
+
+    if (!(filters.counters instanceof RegExp)) {
+        filters.counters = /.*/;
+    }
+    Object.keys(self._counters).forEach(function (key) {
+        if (key.match(filters.counters)) {
             data.counters[key] = {value: self._counters[key].value};
-        });
-    } else {
-        Object.keys(self._counters).forEach(function (key) {
-            if (key.match(filters.counters)) {
-                data.counters[key] = {value: self._counters[key].value};
-            }
-        });
-    }
+        }
+    });
 
-    if (!filters || !(filters.gauges instanceof RegExp)) {
-        Object.keys(self._gauges).forEach(function (key) {
+    if (!(filters.gauges instanceof RegExp)) {
+        filters.gauges = /.*/;
+    }
+    Object.keys(self._gauges).forEach(function (key) {
+        if (key.match(filters.gauges)) {
             data.gauges[key] = {value: self._gauges[key].value};
-        });
-    } else {
-        Object.keys(self._gauges).forEach(function (key) {
-            if (key.match(filters.gauges)) {
-                data.gauges[key] = {value: self._gauges[key].value};
-            }
-        });
-    }
+        }
+    });
 
-    if (!filters || !(filters.histograms instanceof RegExp)) {
-        Object.keys(self._histograms).forEach(function (key) {
+    if (!(filters.histograms instanceof RegExp)) {
+        filters.histograms = /.*/;
+    }
+    Object.keys(self._histograms).forEach(function (key) {
+        if (key.match(filters.histograms)) {
             var snapshot = self._histograms[key].snapshot();
             data.histograms[key] = {};
             Quantify.HISTOGRAM_FIELDS.forEach(function (field) {
                 data.histograms[key][field] = snapshot[field]();
             });
-        });
-    } else {
-        Object.keys(self._histograms).forEach(function (key) {
-            if (key.match(filters.histograms)) {
-                var snapshot = self._histograms[key].snapshot();
-                data.histograms[key] = {};
-                Quantify.HISTOGRAM_FIELDS.forEach(function (field) {
-                    data.histograms[key][field] = snapshot[field]();
-                });
-            }
-        });
-    }
+        }
+    });
 
-    if (!filters || !(filters.meters instanceof RegExp)) {
-        Object.keys(self._meters).forEach(function (key) {
+    if (!(filters.meters instanceof RegExp)) {
+        filters.meters = /.*/;
+    }
+    Object.keys(self._meters).forEach(function (key) {
+        if (key.match(filters.meters)) {
             var meter = self._meters[key];
             data.meters[key] = {
                 count: meter.count
@@ -186,23 +178,14 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
             Quantify.METER_RATE_FIELDS.forEach(function (field) {
                 data.meters[key][field] = meter[field]();
             });
-        });
-    } else {
-        Object.keys(self._meters).forEach(function (key) {
-            if (key.match(filters.meters)) {
-                var meter = self._meters[key];
-                data.meters[key] = {
-                    count: meter.count
-                };
-                Quantify.METER_RATE_FIELDS.forEach(function (field) {
-                    data.meters[key][field] = meter[field]();
-                });
-            }
-        });
-    }
+        }
+    });
 
-    if (!filters || !(filters.timers instanceof RegExp)) {
-        Object.keys(self._timers).forEach(function (key) {
+    if (!(filters.timers instanceof RegExp)) {
+        filters.timers = /.*/;
+    }
+    Object.keys(self._timers).forEach(function (key) {
+        if (key.match(filters.timers)) {
             var timer = self._timers[key];
             var snapshot = timer.snapshot();
             data.timers[key] = {
@@ -215,25 +198,8 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
                 data.timers[key][field] = snapshot[field]();
             });
             data.timers[key].size = snapshot.size();
-        });
-    } else {
-        Object.keys(self._timers).forEach(function (key) {
-            if (key.match(filters.timers)) {
-                var timer = self._timers[key];
-                var snapshot = timer.snapshot();
-                data.timers[key] = {
-                    count: timer.count()
-                };
-                Quantify.TIMER_RATE_FIELDS.forEach(function (field) {
-                    data.timers[key][field] = timer[field]();
-                });
-                Quantify.TIMER_MEASURE_FIELDS.forEach(function (field) {
-                    data.timers[key][field] = snapshot[field]();
-                });
-                data.timers[key].size = snapshot.size();
-            }
-        });
-    }
+        }
+    });
 
     data.latency = getTime() - data.latency;
 
