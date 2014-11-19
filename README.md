@@ -34,8 +34,13 @@ var meter = metrics.meter("foo");
 // create a timer
 var timer = metrics.timer("foo");
 
+// create a counter with metadata
+var counterWithMetadata = metrics.counter("a_counter", {some_tag: "metadata"});
+
 counter.update(1); // increment
 counter.update(-1); // decrement
+
+counterWithMetadata.update(1); // increment
 
 gauge.update(17); // set
 
@@ -56,6 +61,9 @@ metrics.on(subscriptionName, function (data) {
     // console logger
     console.log(data.label);
     console.log(data.counters.foo.value); // 0
+    console.log(data.counters.foo.metadata); // undefined
+    console.log(data.counters.a_counter.value); // 1
+    console.log(data.counters.a_counter.metadata); // {"some_tag": "metadata"}
     console.log(data.gauges.foo.value); // 17
     console.log(data.histograms.foo.max); // maximum
     console.log(data.histograms.foo.mean); // mean
@@ -104,6 +112,12 @@ metrics.on(subscriptionName, function (data) {
     req.write("label:" + data.label + '\n');
     // COUNTER_FIELDS and GAUGE_FIELDS = ['value']
     req.write("counter.foo:" + data.counters.foo.value + "|c\n");
+    var tagsString = "#";
+    Object.keys(data.counters.a_counter.metadata).forEach(function(tagName)) {
+        tagsString += tagName + ":" + data.counter.a_counter.metadata[tagName];
+    });
+    req.write("counter.a_counter:" + data.counters.a_counter.value + "|c|" +
+      tagsString + "\n");
     req.write("gauge.foo:" + data.gauges.foo.value + "|g\n");
     Quantify.HISTOGRAM_FIELDS.forEach(function (field) {
         req.write("histogram.foo." + field + ":" + data.histograms.foo[field] + "|g\n");
@@ -150,13 +164,13 @@ npm test
   * [Quantify.TIMER_MEASURE_FIELDS](#quantifytimer_measure_fields)
   * [Quantify.TIMER_RATE_FIELDS](#quantifytimer_rate_fields)
   * [new Quantify(name)](#new-quantifyname)
-  * [quantify.counter(name)](#quantifycountername)
-  * [quantify.gauge(name)](#quantifygaugename)
+  * [quantify.counter(name, \[metadata\])](#quantifycountername-metadata)
+  * [quantify.gauge(name, \[metadata\])](#quantifygaugename-metadata)
   * [quantify.getMetrics(filters)](#quantifygetmetricsfilters)
-  * [quantify.histogram(name)](#quantifyhistogramname)
-  * [quantify.meter(name)](#quantifymetername)
+  * [quantify.histogram(name, \[metadata\])](#quantifyhistogramname-metadata)
+  * [quantify.meter(name, \[metadata\])](#quantifymetername-metadata)
   * [quantify.subscribe(config)](#quantifysubscribeconfig)
-  * [quantify.timer(name)](#quantifytimername)
+  * [quantify.timer(name, \[metadata\])](#quantifytimername-metadata)
   * [quantify.unsubscribe(subscriptionName)](#quantifyunsubscribesubscriptionname)
   * [Event '&lt;subscriptionName&gt;'](#event-subscriptionname)
 
@@ -218,9 +232,10 @@ All timer fields.
 
   * `name`: _String_ Quantify instance name.
 
-### quantify.counter(name)
+### quantify.counter(name, [metadata])
 
   * `name`: _String_ Counter name.
+  * `metadata`: _Object_ Optional metadata.
   * Return: _Counter_ Instance of a Counter entry.
 
 Get or create a counter with provided name.
@@ -229,14 +244,16 @@ Get or create a counter with provided name.
 var Quantify = require('quantify');
 var metrics = new Quantify();
 var counter = metrics.counter("foo");
+var counterWithMetadata = metrics.counter("foo2", {some: "metadata"});
 counter.update(1); // increment
 counter.update(1); // increment
 counter.update(-1); // decrement
 ```
 
-### quantify.gauge(name)
+### quantify.gauge(name, [metadata])
 
   * `name`: _String_ Gauge name.
+  * `metadata`: _Object_ Optional metadata.
   * Return: _Gauge_ Instance of a Gauge entry.
 
 Get or create a gauge with provided name.
@@ -245,6 +262,7 @@ Get or create a gauge with provided name.
 var Quantify = require('quantify');
 var metrics = new Quantify();
 var gauge = metrics.gauge("foo");
+var gaugeWithMetadata = metrics.gauge("foo2", {some: "metadata"});
 gauge.update(17); // set to 17
 gauge.update(10); // set to 10
 gauge.update(122); // set to 122
@@ -284,9 +302,10 @@ console.log(barSnapshot.counters.foo); // undefined
 console.log(barSnapshot.counters.bar.value); // 0
 ```
 
-### quantify.histogram(name)
+### quantify.histogram(name, [metadata])
 
   * `name`: _String_ Histogram name.
+  * `metadata`: _Object_ Optional metadata.
   * Return: _Histogram_ Instance of a Histogram entry.
 
 Get or create a histogram with provided name.
@@ -295,14 +314,16 @@ Get or create a histogram with provided name.
 var Quantify = require('quantify');
 var metrics = new Quantify();
 var histogram = metrics.histogram("foo");
+var histogramWithMetadata = metrics.histogram("foo2", {some: "metadata"});
 histogram.update(17);
 histogram.update(10);
 histogram.update(122);
 ```
 
-### quantify.meter(name)
+### quantify.meter(name, [metadata])
 
   * `name`: _String_ Meter name.
+  * `metadata`: _Object_ Optional metadata.
   * Return: _Meter_ Instance of a Meter entry.
 
 Get or create a meter with provided name.
@@ -311,6 +332,7 @@ Get or create a meter with provided name.
 var Quantify = require('quantify');
 var metrics = new Quantify();
 var meter = metrics.meter("foo");
+var meterWithMetadata = metrics.meter("foo2", {some: "metadata"});
 meter.update();
 meter.update();
 meter.update(2);
@@ -411,9 +433,10 @@ metrics.on(everyMinute, function (data) {
 setInterval(function () { metrics[everyMinute](); }, 1000 * 60);
 ```
 
-### quantify.timer(name)
+### quantify.timer(name, [metadata])
 
   * `name`: _String_ Timer name.
+  * `metadata`: _Object_ Optional metadata.
   * Return: _Timer_ Instance of a Timer entry.
 
 Get or create a timer with provided name.
@@ -422,6 +445,7 @@ Get or create a timer with provided name.
 var Quantify = require('quantify');
 var metrics = new Quantify();
 var timer = metrics.timer("foo");
+var timerWithMetadata = metrics.timer("foo2", {some: "metadata"});
 timer.update(177); // explicitly record a time interval
 var stopwatch = timer.start(); // start measuring a time interval
 setTimeout(function () {

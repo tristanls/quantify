@@ -33,31 +33,54 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var Quantify = require('../index.js');
 
+var ENTRIES = ['counter', 'gauge', 'histogram', 'meter', 'timer'];
+
 var test = module.exports = {};
 
 test['returns all metrics when invoked'] = function (test) {
-    test.expect(79);
+    test.expect(78);
+
     var metrics = new Quantify();
-    metrics.counter("foo");
-    metrics.counter("bar");
-    metrics.gauge("foo");
-    metrics.gauge("bar");
-    metrics.histogram("foo");
-    metrics.histogram("bar");
-    metrics.meter("foo");
-    metrics.meter("bar");
-    metrics.timer("foo");
-    metrics.timer("bar");
+
+    var metadata = {};
+    ENTRIES.forEach(function(entry) {
+        metrics[entry]("foo");
+        metrics[entry]("bar");
+    });
 
     var data = metrics.getMetrics();
-    test.ok(data.counters);
-    ['counter', 'gauge', 'histogram', 'meter', 'timer'].forEach(function (entry) {
+    ENTRIES.forEach(function (entry) {
         Quantify[entry.toUpperCase() + "_FIELDS"].forEach(function (field) {
             test.ok(field in data[entry + 's'].foo);
             test.ok(field in data[entry + 's'].bar);
         })
         test.equal(Quantify[entry.toUpperCase() + "_FIELDS"].length, Object.keys(data[entry + 's'].foo).length);
         test.equal(Quantify[entry.toUpperCase() + "_FIELDS"].length, Object.keys(data[entry + 's'].bar).length);
+    });
+    test.done();
+};
+
+test['returned metrics include metadata if specified at creation but otherwise do not include a metadta field'] = function (test) {
+    test.expect(83);
+
+    var metrics = new Quantify();
+
+    var metadata = {};
+    ENTRIES.forEach(function(entry) {
+        metrics[entry]("foo");
+        metadata[entry] = {};
+        metrics[entry]("bar", metadata[entry]);
+    });
+
+    var data = metrics.getMetrics();
+    ENTRIES.forEach(function (entry) {
+        Quantify[entry.toUpperCase() + "_FIELDS"].forEach(function (field) {
+            test.ok(field in data[entry + 's'].foo);
+            test.ok(field in data[entry + 's'].bar);
+        })
+        test.equal(Quantify[entry.toUpperCase() + "_FIELDS"].length, Object.keys(data[entry + 's'].foo).length);
+        test.equal(Quantify[entry.toUpperCase() + "_FIELDS"].length + 1, Object.keys(data[entry + 's'].bar).length);
+        test.strictEqual(data[entry + 's'].bar.metadata, metadata[entry]);
     });
     test.done();
 };

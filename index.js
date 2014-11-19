@@ -54,11 +54,20 @@ var Quantify = module.exports = function Quantify(name) {
     events.EventEmitter.call(self);
 
     self.name = name;
+
     self._counters = {};
     self._gauges = {};
     self._histograms = {};
     self._meters = {};
     self._timers = {};
+
+    self._metadata = {
+        counters: {},
+        gauges: {},
+        histograms: {},
+        meters: {},
+        timers: {}
+    };
 };
 
 util.inherits(Quantify, events.EventEmitter);
@@ -67,9 +76,10 @@ Quantify.COUNTER_FIELDS = ['value'];
 
 /*
   * `name`: _String_ Counter name.
+  * `metadata`: _Object_ Optional metadata.
   * Return: _Counter_ Instance of a Counter entry.
 */
-Quantify.prototype.counter = function counter(name) {
+Quantify.prototype.counter = function counter(name, metadata) {
     var self = this;
 
     if (!name) {
@@ -81,6 +91,9 @@ Quantify.prototype.counter = function counter(name) {
     }
 
     var entry = new Counter();
+    if (metadata) {
+        self._metadata.counters[name] = metadata;
+    }
     self._counters[name] = entry;
     return entry;
 };
@@ -89,9 +102,10 @@ Quantify.GAUGE_FIELDS = ['value'];
 
 /*
   * `name`: _String_ Gauge name.
+  * `metadata`: _Object_ Optional metadata.
   * Return: _Gauge_ Instance of a Gauge entry.
 */
-Quantify.prototype.gauge = function gauge(name) {
+Quantify.prototype.gauge = function gauge(name, metadata) {
     var self = this;
 
     if (!name) {
@@ -103,6 +117,9 @@ Quantify.prototype.gauge = function gauge(name) {
     }
 
     var entry = new Gauge();
+    if (metadata) {
+        self._metadata.gauges[name] = metadata;
+    }
     self._gauges[name] = entry;
     return entry;
 };
@@ -138,64 +155,79 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
     if (!(filters.counters instanceof RegExp)) {
         filters.counters = /.*/;
     }
-    Object.keys(self._counters).forEach(function (metric) {
-        if (metric.match(filters.counters)) {
-            data.counters[metric] = {value: self._counters[metric].value};
+    Object.keys(self._counters).forEach(function (metricName) {
+        if (metricName.match(filters.counters)) {
+            var metric = data.counters[metricName] = {value: self._counters[metricName].value};
+            if (metricName in self._metadata.counters) {
+                metric.metadata = self._metadata.counters[metricName];
+            }
         }
     });
 
     if (!(filters.gauges instanceof RegExp)) {
         filters.gauges = /.*/;
     }
-    Object.keys(self._gauges).forEach(function (metric) {
-        if (metric.match(filters.gauges)) {
-            data.gauges[metric] = {value: self._gauges[metric].value};
+    Object.keys(self._gauges).forEach(function (metricName) {
+        if (metricName.match(filters.gauges)) {
+            var metric = data.gauges[metricName] = {value: self._gauges[metricName].value};
+            if (metricName in self._metadata.gauges) {
+                metric.metadata = self._metadata.gauges[metricName];
+            }
         }
     });
 
     if (!(filters.histograms instanceof RegExp)) {
         filters.histograms = /.*/;
     }
-    Object.keys(self._histograms).forEach(function (metric) {
-        if (metric.match(filters.histograms)) {
-            var snapshot = self._histograms[metric].snapshot();
-            data.histograms[metric] = {};
+    Object.keys(self._histograms).forEach(function (metricName) {
+        if (metricName.match(filters.histograms)) {
+            var snapshot = self._histograms[metricName].snapshot();
+            var metric = data.histograms[metricName] = {};
             Quantify.HISTOGRAM_FIELDS.forEach(function (field) {
-                data.histograms[metric][field] = snapshot[field]();
+                metric[field] = snapshot[field]();
             });
+            if (metricName in self._metadata.histograms) {
+                metric.metadata = self._metadata.histograms[metricName];
+            }
         }
     });
 
     if (!(filters.meters instanceof RegExp)) {
         filters.meters = /.*/;
     }
-    Object.keys(self._meters).forEach(function (metric) {
-        if (metric.match(filters.meters)) {
-            var meter = self._meters[metric];
-            data.meters[metric] = {};
+    Object.keys(self._meters).forEach(function (metricName) {
+        if (metricName.match(filters.meters)) {
+            var meter = self._meters[metricName];
+            var metric = data.meters[metricName] = {};
             Quantify.METER_FIELDS.forEach(function (field) {
-                data.meters[metric][field] = meter[field]();
+                metric[field] = meter[field]();
             });
+            if (metricName in self._metadata.meters) {
+                metric.metadata = self._metadata.meters[metricName];
+            }
         }
     });
 
     if (!(filters.timers instanceof RegExp)) {
         filters.timers = /.*/;
     }
-    Object.keys(self._timers).forEach(function (metric) {
-        if (metric.match(filters.timers)) {
-            var timer = self._timers[metric];
+    Object.keys(self._timers).forEach(function (metricName) {
+        if (metricName.match(filters.timers)) {
+            var timer = self._timers[metricName];
             var snapshot = timer.snapshot();
-            data.timers[metric] = {
+            var metric = data.timers[metricName] = {
                 count: timer.count()
             };
             Quantify.TIMER_RATE_FIELDS.forEach(function (field) {
-                data.timers[metric][field] = timer[field]();
+                metric[field] = timer[field]();
             });
             Quantify.TIMER_MEASURE_FIELDS.forEach(function (field) {
-                data.timers[metric][field] = snapshot[field]();
+                metric[field] = snapshot[field]();
             });
-            data.timers[metric].size = snapshot.size();
+            metric.size = snapshot.size();
+            if (metricName in self._metadata.timers) {
+               metric.metadata = self._metadata.timers[metricName];
+            }
         }
     });
 
@@ -208,13 +240,15 @@ Quantify.HISTOGRAM_MEASURE_FIELDS = ['max', 'mean', 'median', 'min',
     'percentile75', 'percentile95', 'percentile98', 'percentile99',
     'percentile999', 'standardDeviation'];
 
-Quantify.HISTOGRAM_FIELDS = Quantify.HISTOGRAM_MEASURE_FIELDS.concat(['size']);
+Quantify.HISTOGRAM_FIELDS = Quantify.HISTOGRAM_MEASURE_FIELDS.concat([
+    'size']);
 
 /*
   * `name`: _String_ Histogram name.
+  * `metadata`: _Object_ Optional metadata.
   * Return: _Histogram_ Instance of a Histogram entry.
 */
-Quantify.prototype.histogram = function histogram(name) {
+Quantify.prototype.histogram = function histogram(name, metadata) {
     var self = this;
 
     if (!name) {
@@ -226,6 +260,9 @@ Quantify.prototype.histogram = function histogram(name) {
     }
 
     var entry = new Histogram();
+    if (metadata) {
+        self._metadata.histograms[name] = metadata;
+    }
     self._histograms[name] = entry;
     return entry;
 };
@@ -237,9 +274,10 @@ Quantify.METER_FIELDS = Quantify.METER_RATE_FIELDS.concat(['count']);
 
 /*
   * `name`: _String_ Meter name.
+  * `metadata`: _Object_ Optional metadata.
   * Return: _Meter_ Instance of a Meter entry.
 */
-Quantify.prototype.meter = function meter(name) {
+Quantify.prototype.meter = function meter(name, metadata) {
     var self = this;
 
     if (!name) {
@@ -251,6 +289,9 @@ Quantify.prototype.meter = function meter(name) {
     }
 
     var entry = new Meter();
+    if (metadata) {
+        self._metadata.meters[name] = metadata;
+    }
     self._meters[name] = entry;
     return entry;
 };
@@ -264,14 +305,14 @@ Quantify.TIMER_RATE_FIELDS = ['meanRate', 'oneMinuteRate', 'fiveMinuteRate',
 
 Quantify.TIMER_FIELDS =
     Quantify.TIMER_MEASURE_FIELDS.concat(
-        Quantify.TIMER_RATE_FIELDS.concat(
-            ['count', 'size']));
+        Quantify.TIMER_RATE_FIELDS.concat(['count', 'size']));
 
 /*
   * `name`: _String_ Timer name.
+  * `metadata`: _Object_ Optional metadata.
   * Return: _Timer_ Instance of a Timer entry.
 */
-Quantify.prototype.timer = function timer(name) {
+Quantify.prototype.timer = function timer(name, metadata) {
     var self = this;
 
     if (!name) {
@@ -283,6 +324,9 @@ Quantify.prototype.timer = function timer(name) {
     }
 
     var entry = new Timer();
+    if (metadata) {
+        self._metadata.timers[name] = metadata;
+    }
     self._timers[name] = entry;
     return entry;
 };
