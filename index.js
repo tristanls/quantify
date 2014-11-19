@@ -133,143 +133,73 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
         timers: {}
     };
 
-    if (!filters || !(filters.counters instanceof RegExp)) {
-        Object.keys(self._counters).forEach(function (key) {
-            data.counters[key] = {value: self._counters[key].value};
-        });
-    } else {
-        Object.keys(self._counters).forEach(function (key) {
-            if (key.match(filters.counters)) {
-                data.counters[key] = {value: self._counters[key].value};
-            }
-        });
-    }
+    filters = filters || {};
 
-    if (!filters || !(filters.gauges instanceof RegExp)) {
-        Object.keys(self._gauges).forEach(function (key) {
-            data.gauges[key] = {value: self._gauges[key].value};
-        });
-    } else {
-        Object.keys(self._gauges).forEach(function (key) {
-            if (key.match(filters.gauges)) {
-                data.gauges[key] = {value: self._gauges[key].value};
-            }
-        });
+    if (!(filters.counters instanceof RegExp)) {
+        filters.counters = /.*/;
     }
+    Object.keys(self._counters).forEach(function (metric) {
+        if (metric.match(filters.counters)) {
+            data.counters[metric] = {value: self._counters[metric].value};
+        }
+    });
 
-    if (!filters || !(filters.histograms instanceof RegExp)) {
-        Object.keys(self._histograms).forEach(function (key) {
-            var snapshot = self._histograms[key].snapshot();
-            data.histograms[key] = {
-                max: snapshot.max(),
-                mean: snapshot.mean(),
-                median: snapshot.median(),
-                min: snapshot.min(),
-                percentile75: snapshot.percentile75(),
-                percentile95: snapshot.percentile95(),
-                percentile98: snapshot.percentile98(),
-                percentile99: snapshot.percentile99(),
-                percentile999: snapshot.percentile999(),
-                size: snapshot.size(),
-                standardDeviation: snapshot.standardDeviation()
+    if (!(filters.gauges instanceof RegExp)) {
+        filters.gauges = /.*/;
+    }
+    Object.keys(self._gauges).forEach(function (metric) {
+        if (metric.match(filters.gauges)) {
+            data.gauges[metric] = {value: self._gauges[metric].value};
+        }
+    });
+
+    if (!(filters.histograms instanceof RegExp)) {
+        filters.histograms = /.*/;
+    }
+    Object.keys(self._histograms).forEach(function (metric) {
+        if (metric.match(filters.histograms)) {
+            var snapshot = self._histograms[metric].snapshot();
+            data.histograms[metric] = {};
+            Quantify.HISTOGRAM_FIELDS.forEach(function (field) {
+                data.histograms[metric][field] = snapshot[field]();
+            });
+        }
+    });
+
+    if (!(filters.meters instanceof RegExp)) {
+        filters.meters = /.*/;
+    }
+    Object.keys(self._meters).forEach(function (metric) {
+        if (metric.match(filters.meters)) {
+            var meter = self._meters[metric];
+            data.meters[metric] = {
+                count: meter.count
             };
-        });
-    } else {
-        Object.keys(self._histograms).forEach(function (key) {
-            if (key.match(filters.histograms)) {
-                var snapshot = self._histograms[key].snapshot();
-                data.histograms[key] = {
-                    max: snapshot.max(),
-                    mean: snapshot.mean(),
-                    median: snapshot.median(),
-                    min: snapshot.min(),
-                    percentile75: snapshot.percentile75(),
-                    percentile95: snapshot.percentile95(),
-                    percentile98: snapshot.percentile98(),
-                    percentile99: snapshot.percentile99(),
-                    percentile999: snapshot.percentile999(),
-                    size: snapshot.size(),
-                    standardDeviation: snapshot.standardDeviation()
-                };
-            }
-        });
-    }
+            Quantify.METER_RATE_FIELDS.forEach(function (field) {
+                data.meters[metric][field] = meter[field]();
+            });
+        }
+    });
 
-    if (!filters || !(filters.meters instanceof RegExp)) {
-        Object.keys(self._meters).forEach(function (key) {
-            var meter = self._meters[key];
-            data.meters[key] = {
-                count: meter.count,
-                meanRate: meter.meanRate(),
-                oneMinuteRate: meter.oneMinuteRate(),
-                fiveMinuteRate: meter.fiveMinuteRate(),
-                fifteenMinuteRate: meter.fifteenMinuteRate()
-            };
-        });
-    } else {
-        Object.keys(self._meters).forEach(function (key) {
-            if (key.match(filters.meters)) {
-                var meter = self._meters[key];
-                data.meters[key] = {
-                    count: meter.count,
-                    meanRate: meter.meanRate(),
-                    oneMinuteRate: meter.oneMinuteRate(),
-                    fiveMinuteRate: meter.fiveMinuteRate(),
-                    fifteenMinuteRate: meter.fifteenMinuteRate()
-                };
-            }
-        });
+    if (!(filters.timers instanceof RegExp)) {
+        filters.timers = /.*/;
     }
-
-    if (!filters || !(filters.timers instanceof RegExp)) {
-        Object.keys(self._timers).forEach(function (key) {
-            var timer = self._timers[key];
+    Object.keys(self._timers).forEach(function (metric) {
+        if (metric.match(filters.timers)) {
+            var timer = self._timers[metric];
             var snapshot = timer.snapshot();
-            data.timers[key] = {
-                count: timer.count(),
-                meanRate: timer.meanRate(),
-                oneMinuteRate: timer.oneMinuteRate(),
-                fiveMinuteRate: timer.fiveMinuteRate(),
-                fifteenMinuteRate: timer.fifteenMinuteRate(),
-                max: snapshot.max(),
-                mean: snapshot.mean(),
-                median: snapshot.median(),
-                min: snapshot.min(),
-                percentile75: snapshot.percentile75(),
-                percentile95: snapshot.percentile95(),
-                percentile98: snapshot.percentile98(),
-                percentile99: snapshot.percentile99(),
-                percentile999: snapshot.percentile999(),
-                size: snapshot.size(),
-                standardDeviation: snapshot.standardDeviation()
+            data.timers[metric] = {
+                count: timer.count()
             };
-        });
-    } else {
-        Object.keys(self._timers).forEach(function (key) {
-            if (key.match(filters.timers)) {
-                var timer = self._timers[key];
-                var snapshot = timer.snapshot();
-                data.timers[key] = {
-                    count: timer.count(),
-                    meanRate: timer.meanRate(),
-                    oneMinuteRate: timer.oneMinuteRate(),
-                    fiveMinuteRate: timer.fiveMinuteRate(),
-                    fifteenMinuteRate: timer.fifteenMinuteRate(),
-                    max: snapshot.max(),
-                    mean: snapshot.mean(),
-                    median: snapshot.median(),
-                    min: snapshot.min(),
-                    percentile75: snapshot.percentile75(),
-                    percentile95: snapshot.percentile95(),
-                    percentile98: snapshot.percentile98(),
-                    percentile99: snapshot.percentile99(),
-                    percentile999: snapshot.percentile999(),
-                    size: snapshot.size(),
-                    standardDeviation: snapshot.standardDeviation()
-                };
-            }
-        });
-    }
+            Quantify.TIMER_RATE_FIELDS.forEach(function (field) {
+                data.timers[metric][field] = timer[field]();
+            });
+            Quantify.TIMER_MEASURE_FIELDS.forEach(function (field) {
+                data.timers[metric][field] = snapshot[field]();
+            });
+            data.timers[metric].size = snapshot.size();
+        }
+    });
 
     data.latency = getTime() - data.latency;
 
