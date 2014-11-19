@@ -449,11 +449,13 @@ var timerWithMetadata = metrics.timer("foo2", {some: "metadata"});
 timer.update(177); // explicitly record a time interval
 var stopwatch = timer.start(); // start measuring a time interval
 setTimeout(function () {
-    stopwatch.stop(); // stop measuring a time interval and record it
+    stopwatch.stop(); // stop measuring a time interval and record it (in milliseconds)
 }, 100);
 ```
 
-If you use `stopwatch` functionality, the interval is calculated in milliseconds.
+If you use `stopwatch` functionality, the interval is calculated in **milliseconds** and the value provided internally via `timer.update()` will be updated in **milliseconds**.
+
+If you never use `stopwatch` for a specific timer instance, the unit of the `timer.update()` call are whatever you want them to be.
 
 ### quantify.unsubscribe(subscriptionName)
 
