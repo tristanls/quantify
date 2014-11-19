@@ -160,37 +160,19 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
     if (!filters || !(filters.histograms instanceof RegExp)) {
         Object.keys(self._histograms).forEach(function (key) {
             var snapshot = self._histograms[key].snapshot();
-            data.histograms[key] = {
-                max: snapshot.max(),
-                mean: snapshot.mean(),
-                median: snapshot.median(),
-                min: snapshot.min(),
-                percentile75: snapshot.percentile75(),
-                percentile95: snapshot.percentile95(),
-                percentile98: snapshot.percentile98(),
-                percentile99: snapshot.percentile99(),
-                percentile999: snapshot.percentile999(),
-                size: snapshot.size(),
-                standardDeviation: snapshot.standardDeviation()
-            };
+            data.histograms[key] = {};
+            Quantify.HISTOGRAM_FIELDS.forEach(function (field) {
+                data.histograms[key][field] = snapshot[field]();
+            });
         });
     } else {
         Object.keys(self._histograms).forEach(function (key) {
             if (key.match(filters.histograms)) {
                 var snapshot = self._histograms[key].snapshot();
-                data.histograms[key] = {
-                    max: snapshot.max(),
-                    mean: snapshot.mean(),
-                    median: snapshot.median(),
-                    min: snapshot.min(),
-                    percentile75: snapshot.percentile75(),
-                    percentile95: snapshot.percentile95(),
-                    percentile98: snapshot.percentile98(),
-                    percentile99: snapshot.percentile99(),
-                    percentile999: snapshot.percentile999(),
-                    size: snapshot.size(),
-                    standardDeviation: snapshot.standardDeviation()
-                };
+                data.histograms[key] = {};
+                Quantify.HISTOGRAM_FIELDS.forEach(function (field) {
+                    data.histograms[key][field] = snapshot[field]();
+                });
             }
         });
     }
@@ -199,24 +181,22 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
         Object.keys(self._meters).forEach(function (key) {
             var meter = self._meters[key];
             data.meters[key] = {
-                count: meter.count,
-                meanRate: meter.meanRate(),
-                oneMinuteRate: meter.oneMinuteRate(),
-                fiveMinuteRate: meter.fiveMinuteRate(),
-                fifteenMinuteRate: meter.fifteenMinuteRate()
+                count: meter.count
             };
+            Quantify.METER_RATE_FIELDS.forEach(function (field) {
+                data.meters[key][field] = meter[field]();
+            });
         });
     } else {
         Object.keys(self._meters).forEach(function (key) {
             if (key.match(filters.meters)) {
                 var meter = self._meters[key];
                 data.meters[key] = {
-                    count: meter.count,
-                    meanRate: meter.meanRate(),
-                    oneMinuteRate: meter.oneMinuteRate(),
-                    fiveMinuteRate: meter.fiveMinuteRate(),
-                    fifteenMinuteRate: meter.fifteenMinuteRate()
+                    count: meter.count
                 };
+                Quantify.METER_RATE_FIELDS.forEach(function (field) {
+                    data.meters[key][field] = meter[field]();
+                });
             }
         });
     }
@@ -226,23 +206,15 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
             var timer = self._timers[key];
             var snapshot = timer.snapshot();
             data.timers[key] = {
-                count: timer.count(),
-                meanRate: timer.meanRate(),
-                oneMinuteRate: timer.oneMinuteRate(),
-                fiveMinuteRate: timer.fiveMinuteRate(),
-                fifteenMinuteRate: timer.fifteenMinuteRate(),
-                max: snapshot.max(),
-                mean: snapshot.mean(),
-                median: snapshot.median(),
-                min: snapshot.min(),
-                percentile75: snapshot.percentile75(),
-                percentile95: snapshot.percentile95(),
-                percentile98: snapshot.percentile98(),
-                percentile99: snapshot.percentile99(),
-                percentile999: snapshot.percentile999(),
-                size: snapshot.size(),
-                standardDeviation: snapshot.standardDeviation()
+                count: timer.count()
             };
+            Quantify.TIMER_RATE_FIELDS.forEach(function (field) {
+                data.timers[key][field] = timer[field]();
+            });
+            Quantify.TIMER_MEASURE_FIELDS.forEach(function (field) {
+                data.timers[key][field] = snapshot[field]();
+            });
+            data.timers[key].size = snapshot.size();
         });
     } else {
         Object.keys(self._timers).forEach(function (key) {
@@ -250,23 +222,15 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
                 var timer = self._timers[key];
                 var snapshot = timer.snapshot();
                 data.timers[key] = {
-                    count: timer.count(),
-                    meanRate: timer.meanRate(),
-                    oneMinuteRate: timer.oneMinuteRate(),
-                    fiveMinuteRate: timer.fiveMinuteRate(),
-                    fifteenMinuteRate: timer.fifteenMinuteRate(),
-                    max: snapshot.max(),
-                    mean: snapshot.mean(),
-                    median: snapshot.median(),
-                    min: snapshot.min(),
-                    percentile75: snapshot.percentile75(),
-                    percentile95: snapshot.percentile95(),
-                    percentile98: snapshot.percentile98(),
-                    percentile99: snapshot.percentile99(),
-                    percentile999: snapshot.percentile999(),
-                    size: snapshot.size(),
-                    standardDeviation: snapshot.standardDeviation()
+                    count: timer.count()
                 };
+                Quantify.TIMER_RATE_FIELDS.forEach(function (field) {
+                    data.timers[key][field] = timer[field]();
+                });
+                Quantify.TIMER_MEASURE_FIELDS.forEach(function (field) {
+                    data.timers[key][field] = snapshot[field]();
+                });
+                data.timers[key].size = snapshot.size();
             }
         });
     }
