@@ -73,6 +73,7 @@ metrics.on(subscriptionName, function (data) {
     console.log(data.counters.a_counter.value); // 1
     console.log(data.counters.a_counter.metadata); // {"some_tag": "metadata"}
     console.log(data.gauges.foo.value); // 17
+    console.log(data.histograms.foo.count); // total count of histogram updates
     console.log(data.histograms.foo.max); // maximum
     console.log(data.histograms.foo.mean); // mean
     console.log(data.histograms.foo.median); // median
@@ -84,7 +85,7 @@ metrics.on(subscriptionName, function (data) {
     console.log(data.histograms.foo.percentile999); // 99.9th percentile
     console.log(data.histograms.foo.sampleSize); // sample size
     console.log(data.histograms.foo.standardDeviation); // standard deviation
-    console.log(data.meters.foo.count); // count
+    console.log(data.meters.foo.count); // total count of meter updates
     console.log(data.meters.foo.meanRate); // mean rate since creation
     console.log(data.meters.foo.oneMinuteRate); // one minute rate
     console.log(data.meters.foo.fiveMinuteRate); // five minute rate
@@ -130,7 +131,7 @@ metrics.on(subscriptionName, function (data) {
     });
 });
 
-// invoke a specific subscription every 15 seconds
+// invoke a specific subscription every 5 seconds
 setInterval(function () { metrics[subscriptionName](); }, 1000 * 5);
 
 ```
@@ -188,7 +189,7 @@ Gauge only has `value` field.
 
 ### Quantify.HISTOGRAM_FIELDS
 
-  * ['max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation', 'sampleSize']
+  * ['count', 'max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation', 'sampleSize']
 
 All histogram fields.
 
@@ -469,7 +470,7 @@ If you never use `stopwatch` for a specific timer instance, the unit of the `tim
       * `latency`: _Number_ Number of milliseconds it took to prepare this subscription.
       * `counters`: _Object_ Object containing counters by name. Each counter having the property: `value`.
       * `gauges`: _Object_ Object containing gauges by name. Each gauge having the property: `value`.
-      * `histograms`: _Object_ Object containing histograms by name. Each histogram having the properties: `max`, `mean`, `median`, `min`, `percentile75`, `percentile95`, `percentile98`, `percentile99`, `percentile999`, `sampleSize`, `standardDeviation`.
+      * `histograms`: _Object_ Object containing histograms by name. Each histogram having the properties: `count`, `max`, `mean`, `median`, `min`, `percentile75`, `percentile95`, `percentile98`, `percentile99`, `percentile999`, `sampleSize`, `standardDeviation`.
       * `meters`: _Object_ Object containing meters by name. Each meter having the properties: `count`, `fifteenMinuteRate`, `fiveMinuteRate`, `meanRate`, `oneMinuteRate`.
       * `timers`: _Object_ Object containing timers by name. Each timer having the properties: `count`, `fifteenMinuteRate`, `fiveMinuteRate`, `meanRate`, `oneMinuteRate`, `max`, `mean`, `median`, `min`, `percentile75`, `percentile95`, `percentile98`, `percentile99`, `percentile999`, `sampleSize`, `standardDeviation`.
 

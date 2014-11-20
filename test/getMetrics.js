@@ -38,7 +38,7 @@ var ENTRIES = ['counter', 'gauge', 'histogram', 'meter', 'timer'];
 var test = module.exports = {};
 
 test['returns all metrics when invoked'] = function (test) {
-    test.expect(78);
+    test.expect(80);
 
     var metrics = new Quantify();
 
@@ -61,7 +61,7 @@ test['returns all metrics when invoked'] = function (test) {
 };
 
 test['returned metrics include metadata if specified at creation but otherwise do not include a metadta field'] = function (test) {
-    test.expect(83);
+    test.expect(85);
 
     var metrics = new Quantify();
 
@@ -135,7 +135,7 @@ test['returns metrics with counters matching gauges filter'] = function (test) {
 };
 
 test['returns metrics with counters matching histograms filter'] = function (test) {
-    test.expect(25);
+    test.expect(27);
     var metrics = new Quantify();
     metrics.histogram("foo");
     metrics.histogram("bar");

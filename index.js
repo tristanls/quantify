@@ -181,8 +181,11 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
     }
     Object.keys(self._histograms).forEach(function (metricName) {
         if (metricName.match(filters.histograms)) {
-            var snapshot = self._histograms[metricName].snapshot();
-            var metric = data.histograms[metricName] = {};
+            var histogram = self._histograms[metricName];
+            var snapshot = histogram.snapshot();
+            var metric = data.histograms[metricName] = {
+                count: histogram.count()
+            };
             Quantify.HISTOGRAM_MEASURE_FIELDS.forEach(function (field) {
                 metric[field] = snapshot[field]();
             });
@@ -242,7 +245,7 @@ Quantify.HISTOGRAM_MEASURE_FIELDS = ['max', 'mean', 'median', 'min',
     'percentile999', 'standardDeviation'];
 
 Quantify.HISTOGRAM_FIELDS = Quantify.HISTOGRAM_MEASURE_FIELDS.concat([
-    'sampleSize']);
+    'count', 'sampleSize']);
 
 /*
   * `name`: _String_ Histogram name.
