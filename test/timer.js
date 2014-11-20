@@ -62,7 +62,7 @@ test['creates a timer with count of 0 values'] = function (test) {
     var metrics = new Quantify();
     var timer = metrics.timer("foo");
 
-    test.equal(timer.count(), 0);
+    test.equal(timer.updateCount(), 0);
     test.done();
 };
 
@@ -89,7 +89,7 @@ test['start() creates a stopwatch'] = function (test) {
     setTimeout(function () {
         stopwatch.stop();
         var snapshot = timer.snapshot();
-        test.equal(timer.count(), 1);
+        test.equal(timer.updateCount(), 1);
         test.ok(snapshot.min() < 200 && snapshot.min() > 0);
         test.ok(snapshot.max() < 200 && snapshot.max() > 0);
         test.equal(snapshot.standardDeviation(), 0);
