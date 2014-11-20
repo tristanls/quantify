@@ -33,14 +33,15 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var Timer = require('../entries/timer.js');
 var Quantify = require('../index.js');
+var UNIT_MAP = require('./util/unitMap.js');
 
 var test = module.exports = {};
 
 test['returns the same timer object when given the same name'] = function (test) {
     test.expect(2);
     var metrics = new Quantify();
-    var timer = metrics.timer("foo");
-    var timer2 = metrics.timer("foo");
+    var timer = metrics.timer("foo", UNIT_MAP.timer);
+    var timer2 = metrics.timer("foo", UNIT_MAP.timer);
 
     test.ok(timer instanceof Timer);
     test.strictEqual(timer, timer2);
@@ -60,7 +61,7 @@ test['throws exception when creating timer without a name'] = function (test) {
 test['creates a timer with count of 0 values'] = function (test) {
     test.expect(1);
     var metrics = new Quantify();
-    var timer = metrics.timer("foo");
+    var timer = metrics.timer("foo", UNIT_MAP.timer);
 
     test.equal(timer.updateCount(), 0);
     test.done();
@@ -69,7 +70,7 @@ test['creates a timer with count of 0 values'] = function (test) {
 test['update() updates the timer'] = function (test) {
     test.expect(4);
     var metrics = new Quantify();
-    var timer = metrics.timer("foo");
+    var timer = metrics.timer("foo", UNIT_MAP.timer);
 
     timer.update(17);
     var snapshot = timer.snapshot();
@@ -83,7 +84,7 @@ test['update() updates the timer'] = function (test) {
 test['start() creates a stopwatch'] = function (test) {
     test.expect(5);
     var metrics = new Quantify();
-    var timer = metrics.timer("foo");
+    var timer = metrics.timer("foo", UNIT_MAP.timer);
 
     var stopwatch = timer.start();
     setTimeout(function () {

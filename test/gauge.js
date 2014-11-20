@@ -39,8 +39,8 @@ var test = module.exports = {};
 test['returns the same gauge object when given the same name'] = function (test) {
     test.expect(2);
     var metrics = new Quantify();
-    var gauge = metrics.gauge("foo");
-    var gauge2 = metrics.gauge("foo");
+    var gauge = metrics.gauge("foo", "unit");
+    var gauge2 = metrics.gauge("foo", "unit");
 
     test.ok(gauge instanceof Gauge);
     test.strictEqual(gauge, gauge2);
@@ -60,7 +60,7 @@ test['throws exception when creating gauge without a name'] = function (test) {
 test['creates a gauge with initial value of 0'] = function (test) {
     test.expect(1);
     var metrics = new Quantify();
-    var gauge = metrics.gauge("foo");
+    var gauge = metrics.gauge("foo", "unit");
 
     test.equal(gauge.value, 0);
     test.done();
@@ -69,7 +69,7 @@ test['creates a gauge with initial value of 0'] = function (test) {
 test['update() updates the gauge'] = function (test) {
     test.expect(1);
     var metrics = new Quantify();
-    var gauge = metrics.gauge("foo");
+    var gauge = metrics.gauge("foo", "unit");
     gauge.update(7);
 
     test.equal(gauge.value, 7);

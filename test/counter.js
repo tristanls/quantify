@@ -39,8 +39,8 @@ var test = module.exports = {};
 test['returns the same counter object when given the same name'] = function (test) {
     test.expect(2);
     var metrics = new Quantify();
-    var counter = metrics.counter("foo");
-    var counter2 = metrics.counter("foo");
+    var counter = metrics.counter("foo", "unit");
+    var counter2 = metrics.counter("foo", "unit");
 
     test.ok(counter instanceof Counter);
     test.strictEqual(counter, counter2);
@@ -60,7 +60,7 @@ test['throws exception when creating counter without a name'] = function (test) 
 test['creates a counter with initial value of 0'] = function (test) {
     test.expect(1);
     var metrics = new Quantify();
-    var counter = metrics.counter("foo");
+    var counter = metrics.counter("foo", "unit");
 
     test.equal(counter.value, 0);
     test.done();
@@ -69,7 +69,7 @@ test['creates a counter with initial value of 0'] = function (test) {
 test['update() updates the counter'] = function (test) {
     test.expect(1);
     var metrics = new Quantify();
-    var counter = metrics.counter("foo");
+    var counter = metrics.counter("foo", "unit");
     counter.update(7);
     counter.update(-3);
 

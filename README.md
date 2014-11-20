@@ -30,18 +30,28 @@ var Quantify = require('../index.js');
 var metrics = new Quantify();
 
 // create a counter
-var counter = metrics.counter("foo");
+var counter = metrics.counter("errors", "Err");
 // create a gauge
-var gauge = metrics.gauge("foo");
+var gauge = metrics.gauge("cpuLoad", "Load");
 // create a histogram
-var histogram = metrics.histogram("foo");
+var histogram = metrics.histogram("searchResultsReturned", {
+    measureUnit: "Result",
+    sampleSizeUnit: "Req"
+});
 // create a meter
-var meter = metrics.meter("foo");
+var meter = metrics.meter("requests", {
+    rateUnit: "Req/s",
+    updateCountUnit: "Req"
+});
 // create a timer
-var timer = metrics.timer("foo");
+var timer = metrics.timer("requestLatency", {
+    measureUnit: "ms",
+    rateUnit: "Req/s",
+    sampleSizeUnit: "Req"
+});
 
 // create a counter with metadata
-var counterWithMetadata = metrics.counter("a_counter", {some_tag: "metadata"});
+var counterWithMetadata = metrics.counter("warnings", "Warn", {server: "i-17"});
 
 counter.update(1); // increment
 counter.update(-1); // decrement
@@ -68,66 +78,109 @@ metrics.on(subscriptionName, function (data) {
     // console logger
     console.log("== Subscription logged to console: ==");
     console.log(data.label); // mySubscription
-    console.log(data.counters.foo.value); // 0
-    console.log(data.counters.foo.metadata); // undefined
-    console.log(data.counters.a_counter.value); // 1
-    console.log(data.counters.a_counter.metadata); // {"some_tag": "metadata"}
-    console.log(data.gauges.foo.value); // 17
-    console.log(data.histograms.foo.updateCount); // total count of histogram updates
-    console.log(data.histograms.foo.max); // maximum
-    console.log(data.histograms.foo.mean); // mean
-    console.log(data.histograms.foo.median); // median
-    console.log(data.histograms.foo.min); // minimum
-    console.log(data.histograms.foo.percentile75); // 75th percentile
-    console.log(data.histograms.foo.percentile95); // 95th percentile
-    console.log(data.histograms.foo.percentile98); // 98th percentile
-    console.log(data.histograms.foo.percentile99); // 99th percentile
-    console.log(data.histograms.foo.percentile999); // 99.9th percentile
-    console.log(data.histograms.foo.sampleSize); // sample size
-    console.log(data.histograms.foo.standardDeviation); // standard deviation
-    console.log(data.meters.foo.updateCount); // total count of meter updates
-    console.log(data.meters.foo.meanRate); // mean rate since creation
-    console.log(data.meters.foo.oneMinuteRate); // one minute rate
-    console.log(data.meters.foo.fiveMinuteRate); // five minute rate
-    console.log(data.meters.foo.fifteenMinuteRate); // fifteen minute rate
-    console.log(data.timers.foo.updateCount); // total count of timer updates
-    console.log(data.timers.foo.meanRate); // mean rate since creation
-    console.log(data.timers.foo.oneMinuteRate); // one minute rate
-    console.log(data.timers.foo.fiveMinuteRate); // five minute rate
-    console.log(data.timers.foo.fifteenMinuteRate); // fifteen minute rate
-    console.log(data.timers.foo.max); // maximum
-    console.log(data.timers.foo.mean); // mean
-    console.log(data.timers.foo.median); // median
-    console.log(data.timers.foo.min); // minimum
-    console.log(data.timers.foo.percentile75); // 75th percentile
-    console.log(data.timers.foo.percentile95); // 95th percentile
-    console.log(data.timers.foo.percentile98); // 98th percentile
-    console.log(data.timers.foo.percentile99); // 99th percentile
-    console.log(data.timers.foo.percentile999); // 99.9th percentile
-    console.log(data.timers.foo.sampleSize); // sample size
-    console.log(data.timers.foo.standardDeviation); // standard deviation
+    console.log(data.counters.errors.value); // 0
+    console.log(data.counters.errors.unit); // Err
+    console.log(data.counters.errors.metadata); // undefined
+    console.log(data.counters.warnings.value); // 1
+    console.log(data.counters.warnings.unit); // Warn
+    console.log(data.counters.warnings.metadata); // {"some_tag": "metadata"}
+    console.log(data.gauges.cpuLoad.value); // 17
+    console.log(data.gauges.cpuLoad.unit); // Load
+    console.log(data.histograms.searchResultsReturned.updateCount); // total count of histogram updates
+    console.log(data.histograms.searchResultsReturned.max); // maximum
+    console.log(data.histograms.searchResultsReturned.mean); // mean
+    console.log(data.histograms.searchResultsReturned.median); // median
+    console.log(data.histograms.searchResultsReturned.min); // minimum
+    console.log(data.histograms.searchResultsReturned.percentile75); // 75th percentile
+    console.log(data.histograms.searchResultsReturned.percentile95); // 95th percentile
+    console.log(data.histograms.searchResultsReturned.percentile98); // 98th percentile
+    console.log(data.histograms.searchResultsReturned.percentile99); // 99th percentile
+    console.log(data.histograms.searchResultsReturned.percentile999); // 99.9th percentile
+    console.log(data.histograms.searchResultsReturned.sampleSize); // sample size
+    console.log(data.histograms.searchResultsReturned.standardDeviation); // standard deviation
+    console.log(data.histograms.searchResultsReturned.measureUnit); // Result
+    console.log(data.histograms.searchResultsReturned.sampleSizeUnit); // Req
+    console.log(data.meters.requests.updateCount); // total count of meter updates
+    console.log(data.meters.requests.meanRate); // mean rate since creation
+    console.log(data.meters.requests.oneMinuteRate); // one minute rate
+    console.log(data.meters.requests.fiveMinuteRate); // five minute rate
+    console.log(data.meters.requests.fifteenMinuteRate); // fifteen minute rate
+    console.log(data.meters.requests.rateUnit); // Req/s
+    console.log(data.meters.requests.updateCountUnit); // Req
+    console.log(data.timers.requestLatency.updateCount); // total count of timer updates
+    console.log(data.timers.requestLatency.meanRate); // mean rate since creation
+    console.log(data.timers.requestLatency.oneMinuteRate); // one minute rate
+    console.log(data.timers.requestLatency.fiveMinuteRate); // five minute rate
+    console.log(data.timers.requestLatency.fifteenMinuteRate); // fifteen minute rate
+    console.log(data.timers.requestLatency.max); // maximum
+    console.log(data.timers.requestLatency.mean); // mean
+    console.log(data.timers.requestLatency.median); // median
+    console.log(data.timers.requestLatency.min); // minimum
+    console.log(data.timers.requestLatency.percentile75); // 75th percentile
+    console.log(data.timers.requestLatency.percentile95); // 95th percentile
+    console.log(data.timers.requestLatency.percentile98); // 98th percentile
+    console.log(data.timers.requestLatency.percentile99); // 99th percentile
+    console.log(data.timers.requestLatency.percentile999); // 99.9th percentile
+    console.log(data.timers.requestLatency.sampleSize); // sample size
+    console.log(data.timers.requestLatency.standardDeviation); // standard deviation
+    console.log(data.timers.requestLatency.measureUnit); // ms
+    console.log(data.timers.requestLatency.rateUnit); // Req/s
+    console.log(data.timers.requestLatency.sampleSizeUnit); // Req
 });
 metrics.on(subscriptionName, function (data) {
     // "statsd" logger
     console.log("== 'statsd' subscription: ==");
     console.log("**statsd**", "label:" + data.label + '\n');
-    // COUNTER_FIELDS and GAUGE_FIELDS = ['value']
-    console.log("**statsd**", "counter.foo:" + data.counters.foo.value + "|c\n");
+
+    console.log("**statsd**", "counter.errors." + data.counters.errors.unit
+        + ":" + data.counters.errors.value + "|c\n");
+
     var tagsString = "#";
-    Object.keys(data.counters.a_counter.metadata).forEach(function(tagName) {
-        tagsString += tagName + ":" + data.counters.a_counter.metadata[tagName];
+    Object.keys(data.counters.warnings.metadata).forEach(function(tagName) {
+        tagsString += tagName + ":" + data.counters.warnings.metadata[tagName];
     });
-    console.log("**statsd**", "counter.a_counter:" + data.counters.a_counter.value + "|c|" +
-      tagsString + "\n");
-    console.log("**statsd**", "gauge.foo:" + data.gauges.foo.value + "|g\n");
-    Quantify.HISTOGRAM_FIELDS.forEach(function (field) {
-        console.log("**statsd**", "histogram.foo." + field + ":" + data.histograms.foo[field] + "|g\n");
+    console.log("**statsd**", "counter.warnings." + data.counters.warnings.unit
+        + ":" + data.counters.warnings.value + "|c|" + tagsString + "\n");
+
+    console.log("**statsd**", "gauge.cpuLoad." + data.gauges.cpuLoad.unit
+        + ":" + data.gauges.cpuLoad.value + "|g\n");
+
+    Quantify.HISTOGRAM_MEASURE_FIELDS.forEach(function (field) {
+        console.log("**statsd**", "histogram.searchResultsReturned." + field
+            + "." + data.histograms.searchResultsReturned.measureUnit + ":"
+            + data.histograms.searchResultsReturned[field] + "|g\n");
     });
-    Quantify.METER_FIELDS.forEach(function (field) {
-        console.log("**statsd**", "meter.foo." + field + ":" + data.meters.foo[field] + "|g\n");
+    console.log("**statsd**", "histogram.searchResultsReturned.updateCount."
+        + data.histograms.searchResultsReturned.sampleSizeUnit + ":"
+        + data.histograms.searchResultsReturned.updateCount + "|g\n");
+    console.log("**statsd**", "histogram.searchResultsReturned.sampleSize."
+        + data.histograms.searchResultsReturned.sampleSizeUnit + ":"
+        + data.histograms.searchResultsReturned.sampleSize + "|g\n");
+
+    Quantify.METER_RATE_FIELDS.forEach(function (field) {
+        console.log("**statsd**", "meter.requests." + field + "."
+            + data.meters.requests.rateUnit + ":"
+            + data.meters.requests[field] + "|g\n");
+    })
+    console.log("**statsd**", "meter.requests.updateCount."
+            + data.meters.requests.updateCountUnit + ":"
+            + data.meters.requests.updateCount + "|g\n");
+
+    Quantify.TIMER_MEASURE_FIELDS.forEach(function (field) {
+        console.log("**statsd**", "timer.requestLatency." + field
+            + "." + data.timers.requestLatency.measureUnit + ":"
+            + data.timers.requestLatency[field] + "|g\n");
     });
-    Quantify.TIMER_FIELDS.forEach(function (field) {
-        console.log("**statsd**", "timer.foo." + field + ":" + data.timers.foo[field] + "|g\n");
+    console.log("**statsd**", "timer.requestLatency.updateCount."
+        + data.timers.requestLatency.sampleSizeUnit + ":"
+        + data.timers.requestLatency.updateCount + "|g\n");
+    console.log("**statsd**", "timer.requestLatency.sampleSize."
+        + data.timers.requestLatency.sampleSizeUnit + ":"
+        + data.timers.requestLatency.sampleSize + "|g\n");
+    Quantify.TIMER_RATE_FIELDS.forEach(function (field) {
+        console.log("**statsd**", "timer.requestLatency." + field + "."
+            + data.timers.requestLatency.rateUnit + ":"
+            + data.timers.requestLatency[field] + "|g\n");
     });
 });
 
@@ -165,31 +218,31 @@ npm test
   * [Quantify.TIMER_MEASURE_FIELDS](#quantifytimer_measure_fields)
   * [Quantify.TIMER_RATE_FIELDS](#quantifytimer_rate_fields)
   * [new Quantify(name)](#new-quantifyname)
-  * [quantify.counter(name, \[metadata\])](#quantifycountername-metadata)
-  * [quantify.gauge(name, \[metadata\])](#quantifygaugename-metadata)
+  * [quantify.counter(name, unit, \[metadata\])](#quantifycountername-unit-metadata)
+  * [quantify.gauge(name, unit, \[metadata\])](#quantifygaugename-unit-metadata)
   * [quantify.getMetrics(filters)](#quantifygetmetricsfilters)
-  * [quantify.histogram(name, \[metadata\])](#quantifyhistogramname-metadata)
-  * [quantify.meter(name, \[metadata\])](#quantifymetername-metadata)
+  * [quantify.histogram(name, units, \[metadata\])](#quantifyhistogramname-units-metadata)
+  * [quantify.meter(name, units, \[metadata\])](#quantifymetername-units-metadata)
   * [quantify.subscribe(config)](#quantifysubscribeconfig)
-  * [quantify.timer(name, \[metadata\])](#quantifytimername-metadata)
+  * [quantify.timer(name, units, \[metadata\])](#quantifytimername-units-metadata)
   * [quantify.unsubscribe(subscriptionName)](#quantifyunsubscribesubscriptionname)
   * [Event '&lt;subscriptionName&gt;'](#event-subscriptionname)
 
 ### Quantify.COUNTER_FIELDS
 
-  * ['value']
+  * ['unit', 'value']
 
 Counter only has `value` field.
 
 ### Quantify.GAUGE_FIELDS
 
-  * ['value']
+  * ['unit', 'value']
 
 Gauge only has `value` field.
 
 ### Quantify.HISTOGRAM_FIELDS
 
-  * ['updateCount', 'max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation', 'sampleSize']
+  * ['updateCount', 'max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation', 'sampleSize', 'measureUnit', 'sampleSizeUnit']
 
 All histogram fields.
 
@@ -201,7 +254,7 @@ All histogram fields.
 
 ### Quantify.METER_FIELDS
 
-  * ['updateCount', 'meanRate', 'oneMinuteRate','fiveMinuteRate', 'fifteenMinuteRate']
+  * ['updateCount', 'meanRate', 'oneMinuteRate','fiveMinuteRate', 'fifteenMinuteRate', 'rateUnit', 'updateCountUnit']
 
 All meter fields.
 
@@ -213,7 +266,7 @@ All meter fields.
 
 ### Quantify.TIMER_FIELDS
 
-  * ['updateCount', 'meanRate', 'oneMinuteRate', 'fiveMinuteRate', 'fifteenMinuteRate', 'max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation', 'sampleSize']
+  * ['updateCount', 'meanRate', 'oneMinuteRate', 'fiveMinuteRate', 'fifteenMinuteRate', 'max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation', 'sampleSize', 'measureUnit', 'rateUnit', 'sampleSizeUnit']
 
 All timer fields.
 
@@ -236,6 +289,7 @@ All timer fields.
 ### quantify.counter(name, [metadata])
 
   * `name`: _String_ Counter name.
+  * `unit`: _String_ What is counted.
   * `metadata`: _Object_ Optional metadata.
   * Return: _Counter_ Instance of a Counter entry.
 
@@ -244,8 +298,8 @@ Get or create a counter with provided name.
 ```javascript
 var Quantify = require('quantify');
 var metrics = new Quantify();
-var counter = metrics.counter("foo");
-var counterWithMetadata = metrics.counter("foo2", {some: "metadata"});
+var counter = metrics.counter("errors", "Err");
+var counterWithMetadata = metrics.counter("warnings", "Warn", {some: "metadata"});
 counter.update(1); // increment
 counter.update(1); // increment
 counter.update(-1); // decrement
@@ -254,6 +308,7 @@ counter.update(-1); // decrement
 ### quantify.gauge(name, [metadata])
 
   * `name`: _String_ Gauge name.
+  * `unit`: _String_ What is measured.
   * `metadata`: _Object_ Optional metadata.
   * Return: _Gauge_ Instance of a Gauge entry.
 
@@ -262,8 +317,8 @@ Get or create a gauge with provided name.
 ```javascript
 var Quantify = require('quantify');
 var metrics = new Quantify();
-var gauge = metrics.gauge("foo");
-var gaugeWithMetadata = metrics.gauge("foo2", {some: "metadata"});
+var gauge = metrics.gauge("cpuLoad", "Load");
+var gaugeWithMetadata = metrics.gauge("connections", "Conn", {some: "metadata"});
 gauge.update(17); // set to 17
 gauge.update(10); // set to 10
 gauge.update(122); // set to 122
@@ -306,6 +361,9 @@ console.log(barSnapshot.counters.bar.value); // 0
 ### quantify.histogram(name, [metadata])
 
   * `name`: _String_ Histogram name.
+  * `units`: _Object_ Units to use.
+    * `measureUnit`: _String_ What specific feature/property/aspect is being measured (ex: request latency).
+    * `sampleSizeUnit`: _String_ What is being measured (ex: web request).
   * `metadata`: _Object_ Optional metadata.
   * Return: _Histogram_ Instance of a Histogram entry.
 
@@ -314,8 +372,14 @@ Get or create a histogram with provided name.
 ```javascript
 var Quantify = require('quantify');
 var metrics = new Quantify();
-var histogram = metrics.histogram("foo");
-var histogramWithMetadata = metrics.histogram("foo2", {some: "metadata"});
+var histogram = metrics.histogram("searchResultsReturned", {
+    measureUnit: "Result",
+    sampleSizeUnit: "Req"
+});
+var histogramWithMetadata = metrics.histogram("friends", {
+    measureUnit: "Friend",
+    sampleSizeUnit: "Req"
+}, {some: "metadata"});
 histogram.update(17);
 histogram.update(10);
 histogram.update(122);
@@ -324,6 +388,9 @@ histogram.update(122);
 ### quantify.meter(name, [metadata])
 
   * `name`: _String_ Meter name.
+  * `units`: _Object_ Units to use.
+    * `rateUnit`: _String_ The rate of what is being measured per second (ex: web requests per second).
+    * `updateCountUnit`: _String_ What is being measured (ex: web request).
   * `metadata`: _Object_ Optional metadata.
   * Return: _Meter_ Instance of a Meter entry.
 
@@ -332,8 +399,14 @@ Get or create a meter with provided name.
 ```javascript
 var Quantify = require('quantify');
 var metrics = new Quantify();
-var meter = metrics.meter("foo");
-var meterWithMetadata = metrics.meter("foo2", {some: "metadata"});
+var meter = metrics.meter("requests", {
+    rateUnit: "Req/s",
+    updateCountUnit: "Req"
+});
+var meterWithMetadata = metrics.meter("events", {
+    rateUnit: "Event/s",
+    updateCountUnit: "Event"
+}, {some: "metadata"});
 meter.update();
 meter.update();
 meter.update(2);
@@ -390,19 +463,19 @@ With filters, one can specify what should be reported for each subscription:
 ```javascript
 var metrics = new Quantify();
 
-var fooCounter = metrics.counter("foo");
-var barCounter = metrics.counter("bar");
+var fooCounter = metrics.counter("requests", "Req");
+var barCounter = metrics.counter("events", "Event");
 
-var everyMinute = metrics.subscribe({filters: {counters: /foo/}});
-var everyFiveMinutes = metrics.subscribe({filters: {counters: /bar/}});
+var everyMinute = metrics.subscribe({filters: {counters: /requests/}});
+var everyFiveMinutes = metrics.subscribe({filters: {counters: /events/}});
 
 metrics.on(everyMinute, function (data) {
-    console.log(data.counters.foo.value); // 0
-    console.log(data.counters.bar); // undefined
+    console.log(data.counters.requests.value); // 0
+    console.log(data.counters.events); // undefined
 });
 metrics.on(everyFiveMinutes, function (data) {
-    console.log(data.counters.foo); // undefined
-    console.log(data.counters.bar.value); // 0
+    console.log(data.counters.requests); // undefined
+    console.log(data.counters.events.value); // 0
 });
 
 setInterval(function () { metrics[everyMinute](); }, 1000 * 60);
@@ -414,13 +487,13 @@ Lastly, Quantify enables mutliple handlers to subscribe to the emitted subscript
 ```javascript
 var metrics = new Quantify();
 
-var fooCounter = metrics.counter("foo");
+var fooCounter = metrics.counter("requests", "Req");
 
 var everyMinute = metrics.subscribe();
 
 metrics.on(everyMinute, function (data) {
     // this is some sort of console reporter
-    console.log(data.counters.foo.value); // 0
+    console.log(data.counters.requests.value); // 0
     console.log(data.counters.bar); // undefined
 });
 metrics.on(everyMinute, function (data) {
@@ -428,7 +501,7 @@ metrics.on(everyMinute, function (data) {
     var req = http.request(options, function (res) {
         // do something with response
     });
-    req.end("foo:" + data.counters.foo.value);
+    req.end("requests:" + data.counters.requests.value);
 });
 
 setInterval(function () { metrics[everyMinute](); }, 1000 * 60);
@@ -437,6 +510,10 @@ setInterval(function () { metrics[everyMinute](); }, 1000 * 60);
 ### quantify.timer(name, [metadata])
 
   * `name`: _String_ Timer name.
+  * `unit`: _Object_ Units to use.
+    * `measureUnit`: _String_ What specific feature/property/aspect is being measured (ex: request latency).
+    * `rateUnit`: _String_ The rate of what is being measured per second (ex: web requests per second).
+    * `sampleSizeUnit`: _String_ What is being measured (ex: web request).
   * `metadata`: _Object_ Optional metadata.
   * Return: _Timer_ Instance of a Timer entry.
 
@@ -445,8 +522,16 @@ Get or create a timer with provided name.
 ```javascript
 var Quantify = require('quantify');
 var metrics = new Quantify();
-var timer = metrics.timer("foo");
-var timerWithMetadata = metrics.timer("foo2", {some: "metadata"});
+var timer = metrics.timer("requestLatency", {
+    measureUnit: "ms",
+    rateUnit: "Req/s",
+    sampleSizeUnit: "Req"
+});
+var timerWithMetadata = metrics.timer("processLatency", {
+    measureUnit: "ms",
+    rateUnit: "Process/s",
+    sampleSizeUnit: "Process"
+}, {some: "metadata"});
 timer.update(177); // explicitly record a time interval
 var stopwatch = timer.start(); // start measuring a time interval
 setTimeout(function () {
@@ -468,11 +553,11 @@ If you never use `stopwatch` for a specific timer instance, the unit of the `tim
   * `function (data) {}`
     * `data`: _Object_ Object containing counters, gauges, histograms, and meters corresponding to the given `<subscriptionName>`.
       * `latency`: _Number_ Number of milliseconds it took to prepare this subscription.
-      * `counters`: _Object_ Object containing counters by name. Each counter having the property: `value`.
-      * `gauges`: _Object_ Object containing gauges by name. Each gauge having the property: `value`.
-      * `histograms`: _Object_ Object containing histograms by name. Each histogram having the properties: `updateCount`, `max`, `mean`, `median`, `min`, `percentile75`, `percentile95`, `percentile98`, `percentile99`, `percentile999`, `sampleSize`, `standardDeviation`.
-      * `meters`: _Object_ Object containing meters by name. Each meter having the properties: `updateCount`, `fifteenMinuteRate`, `fiveMinuteRate`, `meanRate`, `oneMinuteRate`.
-      * `timers`: _Object_ Object containing timers by name. Each timer having the properties: `updateCount`, `fifteenMinuteRate`, `fiveMinuteRate`, `meanRate`, `oneMinuteRate`, `max`, `mean`, `median`, `min`, `percentile75`, `percentile95`, `percentile98`, `percentile99`, `percentile999`, `sampleSize`, `standardDeviation`.
+      * `counters`: _Object_ Object containing counters by name. Each counter having the properties: `unit`, `value`.
+      * `gauges`: _Object_ Object containing gauges by name. Each gauge having the properties: `unit`, `value`.
+      * `histograms`: _Object_ Object containing histograms by name. Each histogram having the properties: `updateCount`, `max`, `mean`, `median`, `min`, `percentile75`, `percentile95`, `percentile98`, `percentile99`, `percentile999`, `sampleSize`, `standardDeviation`, `measureUnit`, `sampleSizeUnit`.
+      * `meters`: _Object_ Object containing meters by name. Each meter having the properties: `updateCount`, `fifteenMinuteRate`, `fiveMinuteRate`, `meanRate`, `oneMinuteRate`, `rateUnit`, `updateCountUnit`.
+      * `timers`: _Object_ Object containing timers by name. Each timer having the properties: `updateCount`, `fifteenMinuteRate`, `fiveMinuteRate`, `meanRate`, `oneMinuteRate`, `max`, `mean`, `median`, `min`, `percentile75`, `percentile95`, `percentile98`, `percentile99`, `percentile999`, `sampleSize`, `standardDeviation`, `measureUnit`, `rateUnit`, `sampleSizeUnit`.
 
 Each subscription emits an event uniquely named with a given `subscriptionName` and containing the appropriate `data` according to previously set subscription filters.
 
