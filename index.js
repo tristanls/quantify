@@ -183,9 +183,10 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
         if (metricName.match(filters.histograms)) {
             var snapshot = self._histograms[metricName].snapshot();
             var metric = data.histograms[metricName] = {};
-            Quantify.HISTOGRAM_FIELDS.forEach(function (field) {
+            Quantify.HISTOGRAM_MEASURE_FIELDS.forEach(function (field) {
                 metric[field] = snapshot[field]();
             });
+            metric.sampleSize = snapshot.size();
             if (metricName in self._metadata.histograms) {
                 metric.metadata = self._metadata.histograms[metricName];
             }
@@ -224,7 +225,7 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
             Quantify.TIMER_MEASURE_FIELDS.forEach(function (field) {
                 metric[field] = snapshot[field]();
             });
-            metric.size = snapshot.size();
+            metric.sampleSize = snapshot.size();
             if (metricName in self._metadata.timers) {
                metric.metadata = self._metadata.timers[metricName];
             }
@@ -241,7 +242,7 @@ Quantify.HISTOGRAM_MEASURE_FIELDS = ['max', 'mean', 'median', 'min',
     'percentile999', 'standardDeviation'];
 
 Quantify.HISTOGRAM_FIELDS = Quantify.HISTOGRAM_MEASURE_FIELDS.concat([
-    'size']);
+    'sampleSize']);
 
 /*
   * `name`: _String_ Histogram name.
@@ -305,7 +306,7 @@ Quantify.TIMER_RATE_FIELDS = ['meanRate', 'oneMinuteRate', 'fiveMinuteRate',
 
 Quantify.TIMER_FIELDS =
     Quantify.TIMER_MEASURE_FIELDS.concat(
-        Quantify.TIMER_RATE_FIELDS.concat(['count', 'size']));
+        Quantify.TIMER_RATE_FIELDS.concat(['count', 'sampleSize']));
 
 /*
   * `name`: _String_ Timer name.

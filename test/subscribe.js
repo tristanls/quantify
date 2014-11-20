@@ -137,7 +137,7 @@ test['emits event with histograms matching histograms filter'] = function (test)
         test.equal(data.histograms.foo.percentile98, 0);
         test.equal(data.histograms.foo.percentile99, 0);
         test.equal(data.histograms.foo.percentile999, 0);
-        test.equal(data.histograms.foo.size, 0);
+        test.equal(data.histograms.foo.sampleSize, 0);
         test.equal(data.histograms.foo.standardDeviation, 0);
         test.done();
     });
@@ -196,7 +196,7 @@ test['emits event with timers matching timers filter'] = function (test) {
         test.equal(data.timers.foo.percentile98, 0);
         test.equal(data.timers.foo.percentile99, 0);
         test.equal(data.timers.foo.percentile999, 0);
-        test.equal(data.timers.foo.size, 0);
+        test.equal(data.timers.foo.sampleSize, 0);
         test.equal(data.timers.foo.standardDeviation, 0);
         test.done();
     });
@@ -232,8 +232,8 @@ test['multiple subscriptions work independently'] = function (test) {
         test.equal(data.gauges.bar.value, 0);
         test.ok(data.histograms);
         test.equal(Object.keys(data.histograms).length, 2);
-        test.equal(data.histograms.foo.size, 0);
-        test.equal(data.histograms.bar.size, 0);
+        test.equal(data.histograms.foo.sampleSize, 0);
+        test.equal(data.histograms.bar.sampleSize, 0);
         test.equal(Object.keys(data.meters).length, 2);
         test.equal(data.meters.foo.count, 0);
         test.equal(data.meters.bar.count, 0);
@@ -252,8 +252,8 @@ test['multiple subscriptions work independently'] = function (test) {
         test.equal(data.gauges.bar.value, 0);
         test.ok(data.histograms);
         test.equal(Object.keys(data.histograms).length, 2);
-        test.equal(data.histograms.foo.size, 0);
-        test.equal(data.histograms.bar.size, 0);
+        test.equal(data.histograms.foo.sampleSize, 0);
+        test.equal(data.histograms.bar.sampleSize, 0);
         test.equal(Object.keys(data.meters).length, 2);
         test.equal(data.meters.foo.count, 0);
         test.equal(data.meters.bar.count, 0);
@@ -273,7 +273,7 @@ test['multiple subscriptions work independently'] = function (test) {
         test.equal(data.gauges.bar.value, 0);
         test.ok(data.histograms);
         test.equal(Object.keys(data.histograms).length, 1);
-        test.equal(data.histograms.bar.size, 0);
+        test.equal(data.histograms.bar.sampleSize, 0);
         test.equal(Object.keys(data.meters).length, 2);
         test.equal(data.meters.foo.count, 0);
         test.equal(data.meters.bar.count, 0);
@@ -293,8 +293,8 @@ test['multiple subscriptions work independently'] = function (test) {
         test.equal(data.gauges.bar.value, 0);
         test.ok(data.histograms);
         test.equal(Object.keys(data.histograms).length, 2);
-        test.equal(data.histograms.foo.size, 0);
-        test.equal(data.histograms.bar.size, 0);
+        test.equal(data.histograms.foo.sampleSize, 0);
+        test.equal(data.histograms.bar.sampleSize, 0);
         test.equal(Object.keys(data.meters).length, 1);
         test.equal(data.meters.bar.count, 0);
         test.ok(Object.keys(data.timers).length, 2);
@@ -313,8 +313,8 @@ test['multiple subscriptions work independently'] = function (test) {
         test.equal(data.gauges.bar.value, 0);
         test.ok(data.histograms);
         test.equal(Object.keys(data.histograms).length, 2);
-        test.equal(data.histograms.foo.size, 0);
-        test.equal(data.histograms.bar.size, 0);
+        test.equal(data.histograms.foo.sampleSize, 0);
+        test.equal(data.histograms.bar.sampleSize, 0);
         test.equal(Object.keys(data.meters).length, 2);
         test.equal(data.meters.foo.count, 0);
         test.equal(data.meters.bar.count, 0);
