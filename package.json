@@ -1,6 +1,6 @@
 {
   "name": "quantify",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Yet another Node.js metrics module.",
   "scripts": {
     "inject-examples": "node scripts/injectExamples.js",
