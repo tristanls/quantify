@@ -46,12 +46,6 @@ var Timer = module.exports = function Timer() {
     self.histogram = new Histogram();
 };
 
-Timer.prototype.count = function count() {
-    var self = this;
-
-    return self.meter.count();
-};
-
 Timer.prototype.fifteenMinuteRate = function fifteenMinuteRate() {
     var self = this;
 
@@ -93,6 +87,12 @@ Timer.prototype.update = function update(value) {
 
     self.meter.update();
     self.histogram.update(value);
+};
+
+Timer.prototype.updateCount = function updateCount() {
+    var self = this;
+
+    return self.meter.updateCount();
 };
 
 var Stopwatch = function Stopwatch(timer) {

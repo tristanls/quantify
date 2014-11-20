@@ -59,12 +59,12 @@ test['throws exception when creating histogram without a name'] = function (test
     test.done();
 };
 
-test['creates a histogram with count of 0 values'] = function (test) {
+test['creates a histogram with updateCount of 0 values'] = function (test) {
     test.expect(1);
     var metrics = new Quantify();
     var histogram = metrics.histogram("foo");
 
-    test.equal(histogram.count(), 0);
+    test.equal(histogram.updateCount(), 0);
     test.done();
 };
 

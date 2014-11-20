@@ -42,10 +42,10 @@ var Histogram = module.exports = function Histogram(config) {
     self.reservoir = config.reservoir || new ExponentiallyDecayingReservoir();
 };
 
-Histogram.prototype.count = function count() {
+Histogram.prototype.snapshot = function snapshot() {
     var self = this;
 
-    return self._count;
+    return self.reservoir.snapshot();
 };
 
 /*
@@ -58,8 +58,8 @@ Histogram.prototype.update = function update(n) {
     self.reservoir.update(n);
 };
 
-Histogram.prototype.snapshot = function snapshot() {
+Histogram.prototype.updateCount = function updateCount() {
     var self = this;
 
-    return self.reservoir.snapshot();
+    return self._count;
 };

@@ -64,12 +64,6 @@ var Meter = module.exports = function Meter(config) {
     });
 };
 
-Meter.prototype.count = function count() {
-    var self = this;
-
-    return self._count;
-};
-
 Meter.prototype.meanRate = function meanRate() {
     var self = this;
 
@@ -129,4 +123,10 @@ Meter.prototype.update = function update(n) {
     self.m1rate.update(n);
     self.m5rate.update(n);
     self.m15rate.update(n);
+};
+
+Meter.prototype.updateCount = function updateCount() {
+    var self = this;
+
+    return self._count;
 };

@@ -78,7 +78,7 @@ metrics.on(subscriptionName, function (data) {
     console.log(data.counters.a_counter.value); // 1
     console.log(data.counters.a_counter.metadata); // {"some_tag": "metadata"}
     console.log(data.gauges.foo.value); // 17
-    console.log(data.histograms.foo.count); // total count of histogram updates
+    console.log(data.histograms.foo.updateCount); // total count of histogram updates
     console.log(data.histograms.foo.max); // maximum
     console.log(data.histograms.foo.mean); // mean
     console.log(data.histograms.foo.median); // median
@@ -90,12 +90,12 @@ metrics.on(subscriptionName, function (data) {
     console.log(data.histograms.foo.percentile999); // 99.9th percentile
     console.log(data.histograms.foo.sampleSize); // sample size
     console.log(data.histograms.foo.standardDeviation); // standard deviation
-    console.log(data.meters.foo.count); // total count of meter updates
+    console.log(data.meters.foo.updateCount); // total count of meter updates
     console.log(data.meters.foo.meanRate); // mean rate since creation
     console.log(data.meters.foo.oneMinuteRate); // one minute rate
     console.log(data.meters.foo.fiveMinuteRate); // five minute rate
     console.log(data.meters.foo.fifteenMinuteRate); // fifteen minute rate
-    console.log(data.timers.foo.count); // total count of timer updates
+    console.log(data.timers.foo.updateCount); // total count of timer updates
     console.log(data.timers.foo.meanRate); // mean rate since creation
     console.log(data.timers.foo.oneMinuteRate); // one minute rate
     console.log(data.timers.foo.fiveMinuteRate); // five minute rate

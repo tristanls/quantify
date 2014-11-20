@@ -73,7 +73,7 @@ metrics.on(subscriptionName, function (data) {
     console.log(data.counters.a_counter.value); // 1
     console.log(data.counters.a_counter.metadata); // {"some_tag": "metadata"}
     console.log(data.gauges.foo.value); // 17
-    console.log(data.histograms.foo.count); // total count of histogram updates
+    console.log(data.histograms.foo.updateCount); // total count of histogram updates
     console.log(data.histograms.foo.max); // maximum
     console.log(data.histograms.foo.mean); // mean
     console.log(data.histograms.foo.median); // median
@@ -85,12 +85,12 @@ metrics.on(subscriptionName, function (data) {
     console.log(data.histograms.foo.percentile999); // 99.9th percentile
     console.log(data.histograms.foo.sampleSize); // sample size
     console.log(data.histograms.foo.standardDeviation); // standard deviation
-    console.log(data.meters.foo.count); // total count of meter updates
+    console.log(data.meters.foo.updateCount); // total count of meter updates
     console.log(data.meters.foo.meanRate); // mean rate since creation
     console.log(data.meters.foo.oneMinuteRate); // one minute rate
     console.log(data.meters.foo.fiveMinuteRate); // five minute rate
     console.log(data.meters.foo.fifteenMinuteRate); // fifteen minute rate
-    console.log(data.timers.foo.count); // total count of timer updates
+    console.log(data.timers.foo.updateCount); // total count of timer updates
     console.log(data.timers.foo.meanRate); // mean rate since creation
     console.log(data.timers.foo.oneMinuteRate); // one minute rate
     console.log(data.timers.foo.fiveMinuteRate); // five minute rate
@@ -189,7 +189,7 @@ Gauge only has `value` field.
 
 ### Quantify.HISTOGRAM_FIELDS
 
-  * ['count', 'max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation', 'sampleSize']
+  * ['updateCount', 'max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation', 'sampleSize']
 
 All histogram fields.
 
@@ -201,7 +201,7 @@ All histogram fields.
 
 ### Quantify.METER_FIELDS
 
-  * ['count', 'meanRate', 'oneMinuteRate','fiveMinuteRate', 'fifteenMinuteRate']
+  * ['updateCount', 'meanRate', 'oneMinuteRate','fiveMinuteRate', 'fifteenMinuteRate']
 
 All meter fields.
 
@@ -213,7 +213,7 @@ All meter fields.
 
 ### Quantify.TIMER_FIELDS
 
-  * ['count', 'meanRate', 'oneMinuteRate', 'fiveMinuteRate', 'fifteenMinuteRate', 'max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation', 'sampleSize']
+  * ['updateCount', 'meanRate', 'oneMinuteRate', 'fiveMinuteRate', 'fifteenMinuteRate', 'max', 'mean', 'median', 'min', 'percentile75', 'percentile95', 'percentile98', 'percentile99', 'percentile999', 'standardDeviation', 'sampleSize']
 
 All timer fields.
 
@@ -470,9 +470,9 @@ If you never use `stopwatch` for a specific timer instance, the unit of the `tim
       * `latency`: _Number_ Number of milliseconds it took to prepare this subscription.
       * `counters`: _Object_ Object containing counters by name. Each counter having the property: `value`.
       * `gauges`: _Object_ Object containing gauges by name. Each gauge having the property: `value`.
-      * `histograms`: _Object_ Object containing histograms by name. Each histogram having the properties: `count`, `max`, `mean`, `median`, `min`, `percentile75`, `percentile95`, `percentile98`, `percentile99`, `percentile999`, `sampleSize`, `standardDeviation`.
-      * `meters`: _Object_ Object containing meters by name. Each meter having the properties: `count`, `fifteenMinuteRate`, `fiveMinuteRate`, `meanRate`, `oneMinuteRate`.
-      * `timers`: _Object_ Object containing timers by name. Each timer having the properties: `count`, `fifteenMinuteRate`, `fiveMinuteRate`, `meanRate`, `oneMinuteRate`, `max`, `mean`, `median`, `min`, `percentile75`, `percentile95`, `percentile98`, `percentile99`, `percentile999`, `sampleSize`, `standardDeviation`.
+      * `histograms`: _Object_ Object containing histograms by name. Each histogram having the properties: `updateCount`, `max`, `mean`, `median`, `min`, `percentile75`, `percentile95`, `percentile98`, `percentile99`, `percentile999`, `sampleSize`, `standardDeviation`.
+      * `meters`: _Object_ Object containing meters by name. Each meter having the properties: `updateCount`, `fifteenMinuteRate`, `fiveMinuteRate`, `meanRate`, `oneMinuteRate`.
+      * `timers`: _Object_ Object containing timers by name. Each timer having the properties: `updateCount`, `fifteenMinuteRate`, `fiveMinuteRate`, `meanRate`, `oneMinuteRate`, `max`, `mean`, `median`, `min`, `percentile75`, `percentile95`, `percentile98`, `percentile99`, `percentile999`, `sampleSize`, `standardDeviation`.
 
 Each subscription emits an event uniquely named with a given `subscriptionName` and containing the appropriate `data` according to previously set subscription filters.
 
@@ -527,13 +527,9 @@ This implementation uses weighted sampling and exponentially decaying reservoir 
 
 **Public API**
 
-  * [histogram.count()](#histogramcount)
   * [histogram.snapshot()](#histogramsnapshot)
   * [histogram.update(n)](#histogramupdaten)
-
-### histogram.count()
-
-Returns the count of total updates to the histogram.
+  * [histogram.updateCount()](#histogramupdatecount)
 
 ### histogram.snapshot()
 
@@ -560,22 +556,22 @@ The returned snapshot has the following available:
 
 Updates the histogram with the provided value.
 
+### histogram.updateCount()
+
+Returns the count of total updates to the histogram.
+
 ### Meter
 
 Measures the rate at which events occur.
 
 **Public API**
 
-  * [meter.count()](#metercount)
   * [meter.fifteenMinuteRate()](#meterfifteenminuterate)
   * [meter.fiveMinuteRate()](#meterfiveminuterate)
   * [meter.meanRate()](#metermeanrate)
   * [meter.oneMinuteRate()](#meteroneminuterate)
   * [meter.update(n)](#meterupdaten)
-
-### meter.count()
-
-Returns the current count of meter updates.
+  * [meter.updateCount()](#meterupdatecount)
 
 ### meter.fifteenMinuteRate()
 
@@ -599,23 +595,23 @@ Returns the one minute rate in updates per second.
 
 Updates the meter `n` times.
 
+### meter.updateCount()
+
+Returns the current count of meter updates.
+
 ### Timer
 
 A combination of a histogram of the duration of an event and a meter of the rate of its occurence.
 
 **Public API**
 
-  * [timer.count()](#timercount)
   * [timer.fifteenMinuteRate()](#timerfifteenminuterate)
   * [timer.fiveMinuteRate()](#timerfiveminuterate)
   * [timer.meanRate()](#timermeanrate)
   * [timer.oneMinuteRate()](#timeroneminuterate)
   * [timer.snapshot()](#timersnapshot)
   * [timer.update(n)](#timerupdaten)
-
-### timer.count()
-
-Returns the current count of timer updates.
+  * [timer.updateCount()](#timerupdatecount)
 
 ### timer.fifteenMinuteRate()
 
@@ -642,6 +638,10 @@ Returns the snapshot of the histogram corresponding to the timer at the present 
   * `n`: _Integer_ Value to update the timer with.
 
 Updates the timer with the provided value.
+
+### timer.updateCount()
+
+Returns the current count of timer updates.
 
 ## Sources
 
