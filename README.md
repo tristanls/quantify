@@ -286,7 +286,7 @@ All timer fields.
 
   * `name`: _String_ Quantify instance name.
 
-### quantify.counter(name, [metadata])
+### quantify.counter(name, unit, [metadata])
 
   * `name`: _String_ Counter name.
   * `unit`: _String_ What is counted.
@@ -305,7 +305,7 @@ counter.update(1); // increment
 counter.update(-1); // decrement
 ```
 
-### quantify.gauge(name, [metadata])
+### quantify.gauge(name, unit, [metadata])
 
   * `name`: _String_ Gauge name.
   * `unit`: _String_ What is measured.
@@ -358,7 +358,7 @@ console.log(barSnapshot.counters.foo); // undefined
 console.log(barSnapshot.counters.bar.value); // 0
 ```
 
-### quantify.histogram(name, [metadata])
+### quantify.histogram(name, units, [metadata])
 
   * `name`: _String_ Histogram name.
   * `units`: _Object_ Units to use.
@@ -385,7 +385,7 @@ histogram.update(10);
 histogram.update(122);
 ```
 
-### quantify.meter(name, [metadata])
+### quantify.meter(name, units, [metadata])
 
   * `name`: _String_ Meter name.
   * `units`: _Object_ Units to use.
@@ -507,7 +507,7 @@ metrics.on(everyMinute, function (data) {
 setInterval(function () { metrics[everyMinute](); }, 1000 * 60);
 ```
 
-### quantify.timer(name, [metadata])
+### quantify.timer(name, units, [metadata])
 
   * `name`: _String_ Timer name.
   * `unit`: _Object_ Units to use.
