@@ -32,20 +32,21 @@ OTHER DEALINGS IN THE SOFTWARE.
 "use strict";
 
 var Quantify = require('../index.js');
+var UNIT_MAP = require('./util/unitMap.js');
 
 var ENTRIES = ['counter', 'gauge', 'histogram', 'meter', 'timer'];
 
 var test = module.exports = {};
 
 test['returns all metrics when invoked'] = function (test) {
-    test.expect(80);
+    test.expect(98);
 
     var metrics = new Quantify();
 
     var metadata = {};
     ENTRIES.forEach(function(entry) {
-        metrics[entry]("foo");
-        metrics[entry]("bar");
+        metrics[entry]("foo", UNIT_MAP[entry]);
+        metrics[entry]("bar", UNIT_MAP[entry]);
     });
 
     var data = metrics.getMetrics();
@@ -60,16 +61,16 @@ test['returns all metrics when invoked'] = function (test) {
     test.done();
 };
 
-test['returned metrics include metadata if specified at creation but otherwise do not include a metadta field'] = function (test) {
-    test.expect(85);
+test['returned metrics include metadata if specified at creation but otherwise do not include a metadata field'] = function (test) {
+    test.expect(103);
 
     var metrics = new Quantify();
 
     var metadata = {};
     ENTRIES.forEach(function(entry) {
-        metrics[entry]("foo");
+        metrics[entry]("foo", UNIT_MAP[entry]);
         metadata[entry] = {};
-        metrics[entry]("bar", metadata[entry]);
+        metrics[entry]("bar", UNIT_MAP[entry], metadata[entry]);
     });
 
     var data = metrics.getMetrics();
@@ -88,16 +89,11 @@ test['returned metrics include metadata if specified at creation but otherwise d
 test['returns the latency of preparing metrics'] = function (test) {
     test.expect(1);
     var metrics = new Quantify();
-    metrics.counter("foo");
-    metrics.counter("bar");
-    metrics.gauge("foo");
-    metrics.gauge("bar");
-    metrics.histogram("foo");
-    metrics.histogram("bar");
-    metrics.meter("foo");
-    metrics.meter("bar");
-    metrics.timer("foo");
-    metrics.timer("bar");
+
+    ENTRIES.forEach(function (entry) {
+        metrics[entry]("foo", UNIT_MAP[entry]);
+        metrics[entry]("boo", UNIT_MAP[entry]);
+    });
 
     var data = metrics.getMetrics();
     test.ok(data.latency > 0);
@@ -107,8 +103,8 @@ test['returns the latency of preparing metrics'] = function (test) {
 test['returns metrics with counters matching counters filter'] = function (test) {
     test.expect(5);
     var metrics = new Quantify();
-    metrics.counter("foo");
-    metrics.counter("bar");
+    metrics.counter("foo", UNIT_MAP.counter);
+    metrics.counter("bar", UNIT_MAP.counter);
 
     var data = metrics.getMetrics({counters: /foo/});
     test.ok(data.counters);
@@ -122,8 +118,8 @@ test['returns metrics with counters matching counters filter'] = function (test)
 test['returns metrics with counters matching gauges filter'] = function (test) {
     test.expect(5);
     var metrics = new Quantify();
-    metrics.gauge("foo");
-    metrics.gauge("bar");
+    metrics.gauge("foo", UNIT_MAP.gauge);
+    metrics.gauge("bar", UNIT_MAP.gauge);
 
     var data = metrics.getMetrics({gauges: /foo/});
     test.ok(data.gauges);
@@ -135,10 +131,10 @@ test['returns metrics with counters matching gauges filter'] = function (test) {
 };
 
 test['returns metrics with counters matching histograms filter'] = function (test) {
-    test.expect(27);
+    test.expect(31);
     var metrics = new Quantify();
-    metrics.histogram("foo");
-    metrics.histogram("bar");
+    metrics.histogram("foo", UNIT_MAP.histogram);
+    metrics.histogram("bar", UNIT_MAP.histogram);
 
     var data = metrics.getMetrics({histograms: /foo/});
     test.ok(data.histograms);
@@ -152,10 +148,10 @@ test['returns metrics with counters matching histograms filter'] = function (tes
 };
 
 test['returns metrics with counters matching meters filter'] = function (test) {
-    test.expect(13);
+    test.expect(17);
     var metrics = new Quantify();
-    metrics.meter("foo");
-    metrics.meter("bar");
+    metrics.meter("foo", UNIT_MAP.meter);
+    metrics.meter("bar", UNIT_MAP.meter);
 
     var data = metrics.getMetrics({meters: /foo/});
     test.ok(data.meters);
@@ -169,10 +165,10 @@ test['returns metrics with counters matching meters filter'] = function (test) {
 };
 
 test['returns metrics with counters matching timers filter'] = function (test) {
-    test.expect(35);
+    test.expect(41);
     var metrics = new Quantify();
-    metrics.timer("foo");
-    metrics.timer("bar");
+    metrics.timer("foo", UNIT_MAP.timer);
+    metrics.timer("bar", UNIT_MAP.timer);
 
     var data = metrics.getMetrics({timers: /foo/});
     test.ok(data.timers);

@@ -32,6 +32,9 @@ OTHER DEALINGS IN THE SOFTWARE.
 "use strict";
 
 var Quantify = require('../index.js');
+var UNIT_MAP = require('./util/unitMap.js');
+
+var ENTRIES = ['counter', 'gauge', 'histogram', 'meter', 'timer'];
 
 var test = module.exports = {};
 
@@ -77,8 +80,8 @@ test['emits event returned by getMetrics() call'] = function (test) {
 test['emits event with counters matching counters filter'] = function (test) {
     test.expect(3);
     var metrics = new Quantify();
-    metrics.counter("foo");
-    metrics.counter("bar");
+    metrics.counter("foo", UNIT_MAP.counter);
+    metrics.counter("bar", UNIT_MAP.counter);
 
     var subscriptionName = metrics.subscribe({
         filters: {
@@ -97,8 +100,8 @@ test['emits event with counters matching counters filter'] = function (test) {
 test['emits event with gauges matching gauges filter'] = function (test) {
     test.expect(3);
     var metrics = new Quantify();
-    metrics.gauge("foo");
-    metrics.gauge("bar");
+    metrics.gauge("foo", UNIT_MAP.gauge);
+    metrics.gauge("bar", UNIT_MAP.gauge);
 
     var subscriptionName = metrics.subscribe({
         filters: {
@@ -117,8 +120,8 @@ test['emits event with gauges matching gauges filter'] = function (test) {
 test['emits event with histograms matching histograms filter'] = function (test) {
     test.expect(13);
     var metrics = new Quantify();
-    metrics.histogram("foo");
-    metrics.histogram("bar");
+    metrics.histogram("foo", UNIT_MAP.histogram);
+    metrics.histogram("bar", UNIT_MAP.histogram);
 
     var subscriptionName = metrics.subscribe({
         filters: {
@@ -147,8 +150,8 @@ test['emits event with histograms matching histograms filter'] = function (test)
 test['emits event with meters matching meters filter'] = function (test) {
     test.expect(7);
     var metrics = new Quantify();
-    metrics.meter("foo");
-    metrics.meter("bar");
+    metrics.meter("foo", UNIT_MAP.meter);
+    metrics.meter("bar", UNIT_MAP.meter);
 
     var subscriptionName = metrics.subscribe({
         filters: {
@@ -171,8 +174,8 @@ test['emits event with meters matching meters filter'] = function (test) {
 test['emits event with timers matching timers filter'] = function (test) {
     test.expect(18);
     var metrics = new Quantify();
-    metrics.timer("foo");
-    metrics.timer("bar");
+    metrics.timer("foo", UNIT_MAP.timer);
+    metrics.timer("bar", UNIT_MAP.timer);
 
     var subscriptionName = metrics.subscribe({
         filters: {
@@ -206,16 +209,11 @@ test['emits event with timers matching timers filter'] = function (test) {
 test['multiple subscriptions work independently'] = function (test) {
     test.expect(85);
     var metrics = new Quantify();
-    metrics.counter("foo");
-    metrics.counter("bar");
-    metrics.gauge("foo");
-    metrics.gauge("bar");
-    metrics.histogram("foo");
-    metrics.histogram("bar");
-    metrics.meter("foo");
-    metrics.meter("bar");
-    metrics.timer("foo");
-    metrics.timer("bar");
+
+    ENTRIES.forEach(function(entry) {
+        metrics[entry]("foo", UNIT_MAP[entry]);
+        metrics[entry]("bar", UNIT_MAP[entry]);
+    });
 
     var subscription1 = metrics.subscribe({filters: {counters: /foo/}});
     var subscription2 = metrics.subscribe({filters: {gauges: /bar/}});

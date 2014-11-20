@@ -35,14 +35,15 @@ var ExponentiallyDecayingReservoir = require('../reservoirs/exponentiallyDecayin
 var Histogram = require('../entries/histogram.js');
 var Quantify = require('../index.js');
 var WeightedSnapshot = require('../snapshots/weighted.js');
+var UNIT_MAP = require('./util/unitMap.js');
 
 var test = module.exports = {};
 
 test['returns the same histogram object when given the same name'] = function (test) {
     test.expect(2);
     var metrics = new Quantify();
-    var histogram = metrics.histogram("foo");
-    var histogram2 = metrics.histogram("foo");
+    var histogram = metrics.histogram("foo", UNIT_MAP.histogram);
+    var histogram2 = metrics.histogram("foo", UNIT_MAP.histogram);
 
     test.ok(histogram instanceof Histogram);
     test.strictEqual(histogram, histogram2);
@@ -62,7 +63,7 @@ test['throws exception when creating histogram without a name'] = function (test
 test['creates a histogram with updateCount of 0 values'] = function (test) {
     test.expect(1);
     var metrics = new Quantify();
-    var histogram = metrics.histogram("foo");
+    var histogram = metrics.histogram("foo", UNIT_MAP.histogram);
 
     test.equal(histogram.updateCount(), 0);
     test.done();
@@ -71,7 +72,7 @@ test['creates a histogram with updateCount of 0 values'] = function (test) {
 test['creates a histogram with an ExponentiallyDecayingReservoir'] = function (test) {
     test.expect(1);
     var metrics = new Quantify();
-    var histogram = metrics.histogram("foo");
+    var histogram = metrics.histogram("foo", UNIT_MAP.histogram);
 
     test.ok(histogram.reservoir instanceof ExponentiallyDecayingReservoir);
     test.done();
@@ -80,7 +81,7 @@ test['creates a histogram with an ExponentiallyDecayingReservoir'] = function (t
 test['creates a histogram with a WeightedSnapshot'] = function (test) {
     test.expect(1);
     var metrics = new Quantify();
-    var histogram = metrics.histogram("foo");
+    var histogram = metrics.histogram("foo", UNIT_MAP.histogram);
 
     test.ok(histogram.reservoir.snapshot() instanceof WeightedSnapshot);
     test.done();
@@ -89,7 +90,7 @@ test['creates a histogram with a WeightedSnapshot'] = function (test) {
 test['update() updates the histogram'] = function (test) {
     test.expect(4);
     var metrics = new Quantify();
-    var histogram = metrics.histogram("foo");
+    var histogram = metrics.histogram("foo", UNIT_MAP.histogram);
 
     histogram.update(17);
     var snapshot = histogram.snapshot();

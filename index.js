@@ -46,6 +46,12 @@ function getTime() {
     return (hrtime[0] * 1000) + (hrtime[1] / (1000000)); // to milliseconds
 };
 
+function validateExists(input, message) {
+    if (!input) {
+        throw new Error(message);
+    }
+};
+
 /*
   * `name`: _String_ Quantify instance name.
 */
@@ -68,18 +74,27 @@ var Quantify = module.exports = function Quantify(name) {
         meters: {},
         timers: {}
     };
+
+    self._units = {
+        counters: {},
+        gauges: {},
+        histograms: {},
+        meters: {},
+        timers: {}
+    };
 };
 
 util.inherits(Quantify, events.EventEmitter);
 
-Quantify.COUNTER_FIELDS = ['value'];
+Quantify.COUNTER_FIELDS = ['unit', 'value'];
 
 /*
   * `name`: _String_ Counter name.
+  * `unit`: _String_ What is counted.
   * `metadata`: _Object_ Optional metadata.
   * Return: _Counter_ Instance of a Counter entry.
 */
-Quantify.prototype.counter = function counter(name, metadata) {
+Quantify.prototype.counter = function counter(name, unit, metadata) {
     var self = this;
 
     if (!name) {
@@ -91,21 +106,27 @@ Quantify.prototype.counter = function counter(name, metadata) {
     }
 
     var entry = new Counter();
+    self._counters[name] = entry;
+
+    validateExists(unit, "Missing 'unit'.");
+    self._units.counters[name] = unit;
+
     if (metadata) {
         self._metadata.counters[name] = metadata;
     }
-    self._counters[name] = entry;
+
     return entry;
 };
 
-Quantify.GAUGE_FIELDS = ['value'];
+Quantify.GAUGE_FIELDS = ['unit', 'value'];
 
 /*
   * `name`: _String_ Gauge name.
+  * `unit`: _String_ What is measured.
   * `metadata`: _Object_ Optional metadata.
   * Return: _Gauge_ Instance of a Gauge entry.
 */
-Quantify.prototype.gauge = function gauge(name, metadata) {
+Quantify.prototype.gauge = function gauge(name, unit, metadata) {
     var self = this;
 
     if (!name) {
@@ -117,10 +138,15 @@ Quantify.prototype.gauge = function gauge(name, metadata) {
     }
 
     var entry = new Gauge();
+    self._gauges[name] = entry;
+
+    validateExists(unit, "Missing 'unit'.");
+    self._units.gauges[name] = unit;
+
     if (metadata) {
         self._metadata.gauges[name] = metadata;
     }
-    self._gauges[name] = entry;
+
     return entry;
 };
 
@@ -157,7 +183,10 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
     }
     Object.keys(self._counters).forEach(function (metricName) {
         if (metricName.match(filters.counters)) {
-            var metric = data.counters[metricName] = {value: self._counters[metricName].value};
+            var metric = data.counters[metricName] = {
+                unit: self._units.counters[metricName],
+                value: self._counters[metricName].value
+            };
             if (metricName in self._metadata.counters) {
                 metric.metadata = self._metadata.counters[metricName];
             }
@@ -169,7 +198,10 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
     }
     Object.keys(self._gauges).forEach(function (metricName) {
         if (metricName.match(filters.gauges)) {
-            var metric = data.gauges[metricName] = {value: self._gauges[metricName].value};
+            var metric = data.gauges[metricName] = {
+                unit: self._units.gauges[metricName],
+                value: self._gauges[metricName].value
+            };
             if (metricName in self._metadata.gauges) {
                 metric.metadata = self._metadata.gauges[metricName];
             }
@@ -182,8 +214,11 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
     Object.keys(self._histograms).forEach(function (metricName) {
         if (metricName.match(filters.histograms)) {
             var histogram = self._histograms[metricName];
+            var units = self._units.histograms[metricName];
             var snapshot = histogram.snapshot();
             var metric = data.histograms[metricName] = {
+                measureUnit: units.measureUnit,
+                sampleSizeUnit: units.sampleSizeUnit,
                 updateCount: histogram.updateCount()
             };
             Quantify.HISTOGRAM_MEASURE_FIELDS.forEach(function (field) {
@@ -202,8 +237,13 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
     Object.keys(self._meters).forEach(function (metricName) {
         if (metricName.match(filters.meters)) {
             var meter = self._meters[metricName];
-            var metric = data.meters[metricName] = {};
-            Quantify.METER_FIELDS.forEach(function (field) {
+            var units = self._units.meters[metricName];
+            var metric = data.meters[metricName] = {
+                rateUnit: units.rateUnit,
+                updateCount: meter.updateCount(),
+                updateCountUnit: units.updateCountUnit
+            };
+            Quantify.METER_RATE_FIELDS.forEach(function (field) {
                 metric[field] = meter[field]();
             });
             if (metricName in self._metadata.meters) {
@@ -218,8 +258,12 @@ Quantify.prototype.getMetrics = function getMetrics(filters) {
     Object.keys(self._timers).forEach(function (metricName) {
         if (metricName.match(filters.timers)) {
             var timer = self._timers[metricName];
+            var units = self._units.timers[metricName];
             var snapshot = timer.snapshot();
             var metric = data.timers[metricName] = {
+                measureUnit: units.measureUnit,
+                rateUnit: units.rateUnit,
+                sampleSizeUnit: units.sampleSizeUnit,
                 updateCount: timer.updateCount()
             };
             Quantify.TIMER_RATE_FIELDS.forEach(function (field) {
@@ -245,14 +289,17 @@ Quantify.HISTOGRAM_MEASURE_FIELDS = ['max', 'mean', 'median', 'min',
     'percentile999', 'standardDeviation'];
 
 Quantify.HISTOGRAM_FIELDS = Quantify.HISTOGRAM_MEASURE_FIELDS.concat([
-    'updateCount', 'sampleSize']);
+    'updateCount', 'sampleSize', 'measureUnit', 'sampleSizeUnit']);
 
 /*
   * `name`: _String_ Histogram name.
+  * `units`: _Object_ Units to use.
+    * `measureUnit`: _String_ What specific feature/property/aspect is being measured (ex: request latency).
+    * `sampleSizeUnit`: _String_ What is being measured (ex: web request).
   * `metadata`: _Object_ Optional metadata.
   * Return: _Histogram_ Instance of a Histogram entry.
 */
-Quantify.prototype.histogram = function histogram(name, metadata) {
+Quantify.prototype.histogram = function histogram(name, units, metadata) {
     var self = this;
 
     if (!name) {
@@ -264,24 +311,35 @@ Quantify.prototype.histogram = function histogram(name, metadata) {
     }
 
     var entry = new Histogram();
+    self._histograms[name] = entry;
+
+    validateExists(units, "Missing 'units'.");
+    validateExists(units.measureUnit, "Missing 'units.measureUnit'.");
+    validateExists(units.sampleSizeUnit, "Missing 'units.sampleSizeUnit'.");
+    self._units.histograms[name] = units;
+
     if (metadata) {
         self._metadata.histograms[name] = metadata;
     }
-    self._histograms[name] = entry;
+
     return entry;
 };
 
 Quantify.METER_RATE_FIELDS = ['meanRate', 'oneMinuteRate', 'fiveMinuteRate',
     'fifteenMinuteRate'];
 
-Quantify.METER_FIELDS = Quantify.METER_RATE_FIELDS.concat(['updateCount']);
+Quantify.METER_FIELDS = Quantify.METER_RATE_FIELDS.concat(['updateCount',
+    'rateUnit', 'updateCountUnit']);
 
 /*
   * `name`: _String_ Meter name.
+  * `units`: _Object_ Units to use.
+    * `rateUnit`: _String_ The rate of what is being measured per second (ex: web requests per second).
+    * `updateCountUnit`: _String_ What is being measured (ex: web request).
   * `metadata`: _Object_ Optional metadata.
   * Return: _Meter_ Instance of a Meter entry.
 */
-Quantify.prototype.meter = function meter(name, metadata) {
+Quantify.prototype.meter = function meter(name, units, metadata) {
     var self = this;
 
     if (!name) {
@@ -293,10 +351,17 @@ Quantify.prototype.meter = function meter(name, metadata) {
     }
 
     var entry = new Meter();
+    self._meters[name] = entry;
+
+    validateExists(units, "Missing 'units'.");
+    validateExists(units.rateUnit, "Missing 'units.rateUnit'.");
+    validateExists(units.updateCountUnit, "Missing 'units.updateCountUnit'.");
+    self._units.meters[name] = units;
+
     if (metadata) {
         self._metadata.meters[name] = metadata;
     }
-    self._meters[name] = entry;
+
     return entry;
 };
 
@@ -309,14 +374,19 @@ Quantify.TIMER_RATE_FIELDS = ['meanRate', 'oneMinuteRate', 'fiveMinuteRate',
 
 Quantify.TIMER_FIELDS =
     Quantify.TIMER_MEASURE_FIELDS.concat(
-        Quantify.TIMER_RATE_FIELDS.concat(['updateCount', 'sampleSize']));
+        Quantify.TIMER_RATE_FIELDS.concat(['updateCount', 'sampleSize',
+            'measureUnit', 'rateUnit', 'sampleSizeUnit']));
 
 /*
   * `name`: _String_ Timer name.
+  * `unit`: _Object_ Units to use.
+    * `measureUnit`: _String_ What specific feature/property/aspect is being measured (ex: request latency).
+    * `rateUnit`: _String_ The rate of what is being measured per second (ex: web requests per second).
+    * `sampleSizeUnit`: _String_ What is being measured (ex: web request).
   * `metadata`: _Object_ Optional metadata.
   * Return: _Timer_ Instance of a Timer entry.
 */
-Quantify.prototype.timer = function timer(name, metadata) {
+Quantify.prototype.timer = function timer(name, units, metadata) {
     var self = this;
 
     if (!name) {
@@ -328,10 +398,18 @@ Quantify.prototype.timer = function timer(name, metadata) {
     }
 
     var entry = new Timer();
+    self._timers[name] = entry;
+
+    validateExists(units, "Missing 'units'.");
+    validateExists(units.measureUnit, "Missing 'units.measureUnit'.");
+    validateExists(units.rateUnit, "Missing 'units.rateUnit'.");
+    validateExists(units.sampleSizeUnit, "Missing 'units.sampleSizeUnit'.");
+    self._units.timers[name] = units;
+
     if (metadata) {
         self._metadata.timers[name] = metadata;
     }
-    self._timers[name] = entry;
+
     return entry;
 };
 
