@@ -150,6 +150,9 @@ Quantify.prototype.gauge = function gauge(name, unit, metadata) {
     return entry;
 };
 
+Quantify.METRICS = ['counters', 'gauges', 'histograms', 'meters', 'timers'];
+Quantify.METRIC_TYPES = ['counter', 'gauge', 'histogram', 'meter', 'timer'];
+
 /*
   * `filters`: _Object_ _(Default: undefined)_
     * `counters`: _RegExp_ _(Default: undefined)_ If specified, subscription

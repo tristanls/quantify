@@ -214,6 +214,8 @@ npm test
   * [Quantify.HISTOGRAM_MEASURE_FIELDS](#quantifyhistogram_measure_fields)
   * [Quantify.METER_FIELDS](#quantifymeter_fields)
   * [Quantify.METER_RATE_FIELDS](#quantifymeter_rate_fields)
+  * [Quantify.METRICS](#quantifymetrics)
+  * [Quantify.METRIC_TYPES](#quantifymetric_types)
   * [Quantify.TIMER_FIELDS](#quantifytimer_fields)
   * [Quantify.TIMER_MEASURE_FIELDS](#quantifytimer_measure_fields)
   * [Quantify.TIMER_RATE_FIELDS](#quantifytimer_rate_fields)
@@ -263,6 +265,14 @@ All meter fields.
   * ['meanRate', 'oneMinuteRate', 'fiveMinuteRate', 'fifteenMinuteRate']
 
 `METER_RATE_FIELDS` are the `METER_FIELDS` that are per second rates.
+
+### Quantify.METRICS
+
+  * ['counters', 'gauges', 'histograms', 'meters', 'timers']
+
+### Quantify.METRIC_TYPES
+
+  * ['counter', 'gauge', 'histogram', 'meter', 'timer']
 
 ### Quantify.TIMER_FIELDS
 
