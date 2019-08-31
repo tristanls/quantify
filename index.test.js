@@ -1,10 +1,10 @@
 /*
 
-test.js: quantify
+index.test.js - Quantify test
 
 The MIT License (MIT)
 
-Copyright (c) 2014 Tristan Slominski
+Copyright (c) 2014-2019 Tristan Slominski
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -31,5 +31,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 "use strict";
 
-var reporter = require('nodeunit').reporters.default;
-reporter.run(['test']);
+const Quantify = require('./index.js');
+
+it("returns separate instances", () =>
+    {
+        const q1 = new Quantify("q1");
+        const q2 = new Quantify("q2");
+        expect(q1).not.toBe(q2);
+    }
+);

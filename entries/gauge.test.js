@@ -1,6 +1,6 @@
 /*
 
-counter.js: Counter
+gauge.test.js - Gauge test
 
 The MIT License (MIT)
 
@@ -31,26 +31,45 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 "use strict";
 
-var Counter = module.exports = function Counter() {
-    var self = this;
+const Gauge = require('../entries/gauge.js');
+const Quantify = require('../index.js');
+const UNIT_MAP = require('../test/unitMap.js');
 
-    self._count = 0;
-
-    Object.defineProperty(self, 'value', {
-        get: function () {
-            return self._count;
+describe("Gauge", () =>
+{
+    let gauge, metrics;
+    beforeEach(() =>
+        {
+            metrics = new Quantify();
+            gauge = metrics.gauge("foo", UNIT_MAP.gauge);
         }
+    );
+    it("returns the same gauge object when given the same name", () =>
+        {
+            const gauge2 = metrics.gauge("foo", UNIT_MAP.gauge);
+            expect(gauge).toBeInstanceOf(Gauge);
+            expect(gauge).toBe(gauge2);
+        }
+    );
+    it("throws exception when creating gauge without a name", () =>
+        {
+            expect(() => metrics.gauge()).toThrow(Error);
+        }
+    );
+    it("creates a gauge with initial value of 0", () =>
+        {
+            expect(gauge.value).toBe(0);
+        }
+    );
+    describe("update()", () =>
+    {
+        it("updates the gauge", () =>
+            {
+                gauge.update(7);
+                gauge.update(-3);
+                expect(gauge.value).toBe(-3);
+            }
+        );
     });
-};
+});
 
-/*
-  * `n`: _Integer_ Value to update the counter with. Use negative value to
-      decrement.
-*/
-Counter.prototype.update = function update(n) {
-    this._count += n;
-};
-
-Counter.prototype.reset = function reset() {
-    this._count = 0;
-};

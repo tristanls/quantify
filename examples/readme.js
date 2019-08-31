@@ -4,7 +4,7 @@ readme.js - readme example script
 
 The MIT License (MIT)
 
-Copyright (c) 2014 Tristan Slominski, Leora Pearson
+Copyright (c) 2014-2019 Tristan Slominski, Leora Pearson
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -30,33 +30,45 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
-var Quantify = require('../index.js');
+const Quantify = require("../index.js");
 
-var metrics = new Quantify();
+const metrics = new Quantify();
 
 // create a counter
-var counter = metrics.counter("errors", "Err");
+const counter = metrics.counter("errors", "Err");
 // create a gauge
-var gauge = metrics.gauge("cpuLoad", "Load");
+const gauge = metrics.gauge("cpuLoad", "Load");
 // create a histogram
-var histogram = metrics.histogram("searchResultsReturned", {
-    measureUnit: "Result",
-    sampleSizeUnit: "Req"
-});
+const histogram = metrics.histogram("searchResultsReturned",
+    {
+        measureUnit: "Result",
+        sampleSizeUnit: "Req"
+    }
+);
 // create a meter
-var meter = metrics.meter("requests", {
-    rateUnit: "Req/s",
-    updateCountUnit: "Req"
-});
+const meter = metrics.meter("requests",
+    {
+        rateUnit: "Req/s",
+        updateCountUnit: "Req"
+    }
+);
 // create a timer
-var timer = metrics.timer("requestLatency", {
-    measureUnit: "ms",
-    rateUnit: "Req/s",
-    sampleSizeUnit: "Req"
-});
+const timer = metrics.timer("requestLatency",
+    {
+        measureUnit: "ms",
+        rateUnit: "Req/s",
+        sampleSizeUnit: "Req"
+    }
+);
 
 // create a counter with metadata
-var counterWithMetadata = metrics.counter("warnings", "Warn", {server: "i-17"});
+const counterWithMetadata = metrics.counter(
+    "warnings",
+    "Warn",
+    {
+        server: "i-17"
+    }
+);
 
 counter.update(1); // increment
 counter.update(-1); // decrement
@@ -71,14 +83,14 @@ histogram.update(7122); // update
 meter.update(); // mark
 meter.update(10); // 10 "simultaneous" marks
 
-var stopwatch = timer.start(); // start a timer
+const stopwatch = timer.start(); // start a timer
 stopwatch.stop(); // stop a timer
 timer.update(178); // explicitly update the timer with given value
 
 console.log("== Synchronous getMetrics() output: ==");
 console.dir(metrics.getMetrics()); // get metrics synchronously
 
-var subscriptionName = metrics.subscribe({label: "mySubscription"});
+const subscriptionName = metrics.subscribe({label: "mySubscription"});
 metrics.on(subscriptionName, function (data) {
     // console logger
     console.log("== Subscription logged to console: ==");
@@ -135,57 +147,57 @@ metrics.on(subscriptionName, function (data) {
 metrics.on(subscriptionName, function (data) {
     // "statsd" logger
     console.log("== 'statsd' subscription: ==");
-    console.log("**statsd**", "label:" + data.label + '\n');
+    console.log("**statsd**", "label:" + data.label);
 
     console.log("**statsd**", "counter.errors." + data.counters.errors.unit
-        + ":" + data.counters.errors.value + "|c\n");
+        + ":" + data.counters.errors.value + "|c");
 
     var tagsString = "#";
     Object.keys(data.counters.warnings.metadata).forEach(function(tagName) {
         tagsString += tagName + ":" + data.counters.warnings.metadata[tagName];
     });
     console.log("**statsd**", "counter.warnings." + data.counters.warnings.unit
-        + ":" + data.counters.warnings.value + "|c|" + tagsString + "\n");
+        + ":" + data.counters.warnings.value + "|c|" + tagsString);
 
     console.log("**statsd**", "gauge.cpuLoad." + data.gauges.cpuLoad.unit
-        + ":" + data.gauges.cpuLoad.value + "|g\n");
+        + ":" + data.gauges.cpuLoad.value + "|g");
 
     Quantify.HISTOGRAM_MEASURE_FIELDS.forEach(function (field) {
         console.log("**statsd**", "histogram.searchResultsReturned." + field
             + "." + data.histograms.searchResultsReturned.measureUnit + ":"
-            + data.histograms.searchResultsReturned[field] + "|g\n");
+            + data.histograms.searchResultsReturned[field] + "|g");
     });
     console.log("**statsd**", "histogram.searchResultsReturned.updateCount."
         + data.histograms.searchResultsReturned.sampleSizeUnit + ":"
-        + data.histograms.searchResultsReturned.updateCount + "|g\n");
+        + data.histograms.searchResultsReturned.updateCount + "|g");
     console.log("**statsd**", "histogram.searchResultsReturned.sampleSize."
         + data.histograms.searchResultsReturned.sampleSizeUnit + ":"
-        + data.histograms.searchResultsReturned.sampleSize + "|g\n");
+        + data.histograms.searchResultsReturned.sampleSize + "|g");
 
     Quantify.METER_RATE_FIELDS.forEach(function (field) {
         console.log("**statsd**", "meter.requests." + field + "."
             + data.meters.requests.rateUnit + ":"
-            + data.meters.requests[field] + "|g\n");
+            + data.meters.requests[field] + "|g");
     })
     console.log("**statsd**", "meter.requests.updateCount."
             + data.meters.requests.updateCountUnit + ":"
-            + data.meters.requests.updateCount + "|g\n");
+            + data.meters.requests.updateCount + "|g");
 
     Quantify.TIMER_MEASURE_FIELDS.forEach(function (field) {
         console.log("**statsd**", "timer.requestLatency." + field
             + "." + data.timers.requestLatency.measureUnit + ":"
-            + data.timers.requestLatency[field] + "|g\n");
+            + data.timers.requestLatency[field] + "|g");
     });
     console.log("**statsd**", "timer.requestLatency.updateCount."
         + data.timers.requestLatency.sampleSizeUnit + ":"
-        + data.timers.requestLatency.updateCount + "|g\n");
+        + data.timers.requestLatency.updateCount + "|g");
     console.log("**statsd**", "timer.requestLatency.sampleSize."
         + data.timers.requestLatency.sampleSizeUnit + ":"
-        + data.timers.requestLatency.sampleSize + "|g\n");
+        + data.timers.requestLatency.sampleSize + "|g");
     Quantify.TIMER_RATE_FIELDS.forEach(function (field) {
         console.log("**statsd**", "timer.requestLatency." + field + "."
             + data.timers.requestLatency.rateUnit + ":"
-            + data.timers.requestLatency[field] + "|g\n");
+            + data.timers.requestLatency[field] + "|g");
     });
 });
 
